@@ -1,0 +1,975 @@
+[
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "eth_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "max_tokens",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "tokenToEthSwapOutput",
+    "outputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "name",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_spender",
+        "type": "address"
+      },
+      {
+        "name": "_value",
+        "type": "uint256"
+      }
+    ],
+    "name": "approve",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "ethToTokenTransferOutput",
+    "outputs": [
+      {
+        "name": "eth_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_from",
+        "type": "address"
+      },
+      {
+        "name": "_to",
+        "type": "address"
+      },
+      {
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transferFrom",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "eth_bought",
+        "type": "uint256"
+      }
+    ],
+    "name": "getTokenToEthOutputPrice",
+    "outputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "min_liquidity",
+        "type": "uint256"
+      },
+      {
+        "name": "max_tokens",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "addLiquidity",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      }
+    ],
+    "name": "getEthToTokenOutputPrice",
+    "outputs": [
+      {
+        "name": "eth_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "token_addr",
+        "type": "address"
+      }
+    ],
+    "name": "setup",
+    "outputs": [],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "ethToTokenSwapOutput",
+    "outputs": [
+      {
+        "name": "eth_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_owner",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "min_tokens",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToEthTransferInput",
+    "outputs": [
+      {
+        "name": "eth_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      }
+    ],
+    "name": "getTokenToEthInputPrice",
+    "outputs": [
+      {
+        "name": "eth_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "min_eth",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "tokenToEthSwapInput",
+    "outputs": [
+      {
+        "name": "eth_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "factoryAddress",
+    "outputs": [
+      {
+        "name": "factory",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "max_tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "max_eth_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "name": "exchange_addr",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToExchangeTransferOutput",
+    "outputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "tokenAddress",
+    "outputs": [
+      {
+        "name": "token",
+        "type": "address"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "_to",
+        "type": "address"
+      },
+      {
+        "name": "_value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transfer",
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "min_tokens",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "ethToTokenTransferInput",
+    "outputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "max_tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "max_eth_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "token_addr",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToTokenSwapOutput",
+    "outputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "min_tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "min_eth_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "exchange_addr",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToExchangeSwapInput",
+    "outputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "eth_sold",
+        "type": "uint256"
+      }
+    ],
+    "name": "getEthToTokenInputPrice",
+    "outputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "eth_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "max_tokens",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "recipient",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToEthTransferOutput",
+    "outputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": true,
+    "inputs": [
+      {
+        "name": "_owner",
+        "type": "address"
+      },
+      {
+        "name": "_spender",
+        "type": "address"
+      }
+    ],
+    "name": "allowance",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "min_tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "min_eth_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "token_addr",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToTokenSwapInput",
+    "outputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "max_tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "max_eth_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "exchange_addr",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToExchangeSwapOutput",
+    "outputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "min_tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "min_eth_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "name": "exchange_addr",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToExchangeTransferInput",
+    "outputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "min_tokens",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "ethToTokenSwapInput",
+    "outputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "max_tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "max_eth_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "name": "token_addr",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToTokenTransferOutput",
+    "outputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "name": "min_tokens_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "min_eth_bought",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      },
+      {
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "name": "token_addr",
+        "type": "address"
+      }
+    ],
+    "name": "tokenToTokenTransferInput",
+    "outputs": [
+      {
+        "name": "tokens_bought",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [
+      {
+        "name": "amount",
+        "type": "uint256"
+      },
+      {
+        "name": "min_eth",
+        "type": "uint256"
+      },
+      {
+        "name": "min_tokens",
+        "type": "uint256"
+      },
+      {
+        "name": "deadline",
+        "type": "uint256"
+      }
+    ],
+    "name": "removeLiquidity",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "provider",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "eth_amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "name": "token_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "AddLiquidity",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "provider",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "eth_amount",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "name": "token_amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "RemoveLiquidity",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Transfer",
+    "type": "event"
+  },
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "totalSupply",
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "eth_sold",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "name": "tokens_bought",
+        "type": "uint256"
+      }
+    ],
+    "name": "TokenPurchase",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "tokens_sold",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "name": "eth_bought",
+        "type": "uint256"
+      }
+    ],
+    "name": "EthPurchase",
+    "type": "event"
+  }
+]
