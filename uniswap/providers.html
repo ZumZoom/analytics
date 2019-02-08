@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <style>
+    h1 {
+      font-family: 'Roboto', sans-serif;
+      color: #555555;
+      font-weight: 300;
+    }
+  </style>
+  <title>Uniswap Liquidity Providers By Token</title>
+
+</head>
+<body>
+  <noscript>
+    You need to enable JavaScript to run this app.
+  </noscript>
+  <div id="root">
+    <h1>Uniswap Liquidity Providers By Token</h1>
+    <select id="tokenSelector" class="js-example-basic-single" style="width: 300px; display: inline-block">
+      <option value="dai">DAI</option>
+    </select>
+    <div id="container" style="width:100%; height:800px;"></div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://code.highcharts.com/modules/data.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+  <script>
+    var csv_url = undefined;
+
+    $(document).ready(function() {
+      $('#tokenSelector').select2({
+        ajax: {
+          url: './data/tokens.json',
+          dataType: 'json'
+        }
+      });
+      csv_url = window.location.href;
+      csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/' + $('#tokenSelector').select2('data')[0].id + '_providers.csv';
+      createChart();
+    });
+
+    function createChart() {
+      Highcharts.chart('container', {
+        chart: {
+          type: 'pie',
+          events: {
+            redraw: function(event) {
+              this.renderer.text('<b>Total:</b> ' + this.series[0].total.toFixed(2) + ' ETH', 0, 40).css({ fontSize: '16px' }).add()
+            }
+          }
+        },
+        title: {
+          text: '',
+          useHTML: true
+        },
+        tooltip: {
+          pointFormat: '<b>{point.y} ({point.percentage:.0f}%)</b>',
+        },
+        plotOptions: {
+          pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+              enabled: true,
+              format: '<b>{point.name}</b>: {point.y} ({point.percentage:.0f}%)',
+              style: {
+                color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+              },
+            }
+          }
+        },
+        data: {
+          csvURL: csv_url
+        }
+      });
+    }
+
+    $('#tokenSelector').on('select2:select', function (e) {
+      csv_url = window.location.href;
+      csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/' + e.params.data.id + '_providers.csv';
+      createChart()
+    });
+  </script>
+</body>
+</html>
