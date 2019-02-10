@@ -38,10 +38,12 @@
         ajax: {
           url: './data/tokens.json',
           dataType: 'json'
-        }
+          cache: true
+        },
+        minimumResultsForSearch: -1
       });
       csv_url = window.location.href;
-      csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/' + $('#tokenSelector').select2('data')[0].id + '_providers.csv';
+      csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/providers/' + $('#tokenSelector').select2('data')[0].id + '.csv';
       createChart();
     });
 
@@ -60,7 +62,7 @@
           useHTML: true
         },
         tooltip: {
-          pointFormat: '<b>{point.y} ({point.percentage:.0f}%)</b>',
+          pointFormat: '<b>{point.y} ETH ({point.percentage:.0f}%)</b>',
         },
         plotOptions: {
           pie: {
@@ -68,7 +70,7 @@
             cursor: 'pointer',
             dataLabels: {
               enabled: true,
-              format: '<b>{point.name}</b>: {point.y} ({point.percentage:.0f}%)',
+              format: '<b>{point.name}</b>: {point.y} ETH ({point.percentage:.0f}%)',
               style: {
                 color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
               },
@@ -83,7 +85,7 @@
 
     $('#tokenSelector').on('select2:select', function (e) {
       csv_url = window.location.href;
-      csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/' + e.params.data.id + '_providers.csv';
+      csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/providers/' + e.params.data.id + '.csv';
       createChart()
     });
   </script>
