@@ -6,7 +6,14 @@
   <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
   <title>Uniswap ROI By Token</title>
-
+  <style>
+    #config-container {
+      display: flex;                  /* establish flex container */
+      flex-direction: row;            /* default value; can be omitted */
+      flex-wrap: nowrap;              /* default value; can be omitted */
+      justify-content: space-between; /* switched from default (flex-start, see below) */
+    }
+  </style>
 </head>
 <body>
   <header>
@@ -23,10 +30,22 @@
   </noscript>
   <div id="root">
     <h1>Uniswap ROI By Token</h1>
-    <select id="tokenSelector" class="js-example-basic-single" style="width: 300px;">
-      <option value="dai">DAI</option>
-    </select>
-    <label id="report" style="margin-left: 150px; font-size: 14pt"></label>
+    <div id="config-container">
+      <select id="tokenSelector" style="width: 300px">
+        <option value="dai">DAI</option>
+      </select>
+
+      <label id="report" style="font-size: 14pt"></label>
+
+      <label for="baselineSelector" style="font-size: 14pt">
+        Baseline:
+        <select id="baselineSelector" style="width: 300px">
+          <option value="usd" selected="selected">Hodl USD</option>
+          <option value="eth">Hodl ETH</option>
+          <option value="portfolio">Hodl Uniswap deposit</option>
+        </select>
+      </label>
+    </div>
     <div id="container" style="width:100%; height:800px;"></div>
   </div>
   <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
@@ -37,6 +56,11 @@
   <script>
     var csv_url = undefined;
     var selected_token = 'DAI';
+    var selected_baseline = 'usd';
+
+    $('#baselineSelector').select2({
+      minimumResultsForSearch: -1
+    });
 
     $(document).ready(function() {
       $('#tokenSelector').select2({
@@ -136,17 +160,16 @@
         xAxis: {
           events: {
             afterSetExtremes: function(e) {
-              var sum_x = 1, sum_y = 1, chartOb = this;
+              var eth_roi = 1, token_roi = 1, chartOb = this;
               $.each(chartOb.series[0].data,function(i,point){
                 if(point.x >= chartOb.min && point.x <= chartOb.max)
-                  sum_x *= 1 + point.y / 100;
+                  eth_roi *= 1 + point.y / 100;
               });
               $.each(chartOb.series[1].data,function(i,point){
                 if(point.x >= chartOb.min && point.x <= chartOb.max)
-                  sum_y *= 1 + point.y / 100;
+                  token_roi *= 1 + point.y / 100;
               });
 
-              var depo_tokens, depo_usd, return_usd;
               var req1 = $.getJSON('https://min-api.cryptocompare.com/data/pricehistorical?fsym=USD&tsyms=ETH,' +
                         $('#tokenSelector').select2('data')[0].text + '&ts=' +
                         (chartOb.min/1000|0));
@@ -155,26 +178,46 @@
                         $('#tokenSelector').select2('data')[0].text + '&ts=' +
                         (chartOb.max/1000|0))
 
-
               $.when(req1, req2).done(function(data1, data2) {
-                var values = [];
+                var prices = [];
                 $.each( data1[0].USD, function( key, val ) {
-                    values.push(1 / val);
+                    prices.push(val);
                 });
-                depo_tokens = values[0] / values[1];
-                depo_usd = 2 * values[0];
-                values = [];
                 $.each( data2[0].USD, function( key, val ) {
-                    values.push(1 / val);
+                    prices.push(val);
                 });
-                return_usd = values[0] * sum_x + depo_tokens * sum_y * values[1];
-                console.log(return_usd);
-                console.log(depo_usd);
+
+                var depo_tokens = prices[1] / prices[0];
+                var depo_usd = 2 / prices[0];
+
+                var return_eth = 1 * eth_roi + depo_tokens * token_roi * prices[2] / prices[3];
+                var performance;
+                console.log('Deposit:', 1, 'ETH', depo_tokens, 'tokens')
+                console.log('Withdraw:', eth_roi, 'ETH', depo_tokens * token_roi, 'tokens')
+
+                switch($("#baselineSelector option:selected").val()) {
+                  case 'usd':
+                    console.log('USD HODL:', depo_usd, 'USD')
+                    console.log('Uniswap:', return_eth / prices[2], 'USD')
+                    performance = return_eth / prices[2] / depo_usd;
+                    break;
+                  case 'eth':
+                    console.log('ETH HODL:', 2, 'ETH')
+                    console.log('Uniswap:', return_eth, 'ETH')
+                    performance = return_eth / 2;
+                    break;
+                  case 'portfolio':
+                    console.log('Portfolio HODL:', 1 + depo_tokens * prices[2] / prices[3], 'ETH')
+                    console.log('Uniswap:', return_eth, 'ETH')
+                    performance = return_eth / (1 + depo_tokens * prices[2] / prices[3]);
+                    break;
+                }
+
                 $('#report').html(
                   'ROI over selected period: <b>ETH ' +
-                  (sum_x * 100 - 100).toFixed(2).toString() + '%</b>, <b>' + selected_token + ' ' +
-                  (sum_y * 100 - 100).toFixed(2).toString() + '%</b> (<b>USD ' +
-                  (100 * return_usd / depo_usd - 100).toFixed(2).toString() + '%</b>)'
+                  (eth_roi * 100 - 100).toFixed(2).toString() + '%</b>, <b>' + selected_token + ' ' +
+                  (token_roi * 100 - 100).toFixed(2).toString() + '%</b> (<b>' +
+                  (performance * 100 - 100).toFixed(2).toString() + '%</b> of baseline)'
                 );
               });
             }
@@ -188,6 +231,11 @@
       csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/roi/' + e.params.data.id + '.csv';
       selected_token = e.params.data.text;
       createChart()
+    });
+
+    $('#baselineSelector').on('select2:select', function (e) {
+      selected_baseline = e.params.data.id;
+      createChart();
     });
   </script>
 </body>
