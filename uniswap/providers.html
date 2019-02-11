@@ -37,7 +37,7 @@
       $('#tokenSelector').select2({
         ajax: {
           url: './data/tokens.json',
-          dataType: 'json'
+          dataType: 'json',
           cache: true,
           processResults: function (data, params) {
             params.term = params.term ? params.term.toLowerCase() : '';
