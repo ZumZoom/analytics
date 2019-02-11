@@ -57,6 +57,7 @@
     var csv_url = undefined;
     var selected_token = 'DAI';
     var selected_baseline = 'usd';
+    var in_redraw = false;
 
     $('#baselineSelector').select2({
       minimumResultsForSearch: -1
@@ -105,14 +106,12 @@
         tooltip: {
          shared: true,
          split: false,
+         followPointer: true,
          pointFormat: '{series.name}: <b>{point.y}</b><br>'
         },
         yAxis: [{
           labels: {
             format: '{value}%',
-            style: {
-              color: Highcharts.getOptions().colors[0]
-            }
           },
           title: {
             text: ''
@@ -138,17 +137,11 @@
           csvURL: csv_url
         },
         series: [{
-          yAxis: 0,
-          zIndex: 1,
-          tooltip: {
-            valueSuffix: '%'
-          }
+          visible: false,
+          showInLegend: false
         }, {
-          yAxis: 0,
-          zIndex: 2,
-          tooltip: {
-            valueSuffix: '%'
-          }
+          visible: false,
+          showInLegend: false
         }, {
           yAxis: 1,
           zIndex: 0,
@@ -156,19 +149,47 @@
             valueSuffix: ' ETH'
           },
           type: 'column'
+        }, {
+          yAxis: 0,
+          zIndex: 1,
+          tooltip: {
+            valueSuffix: '%'
+          }
+        }, {
+          yAxis: 0,
+          zIndex: 1,
+          tooltip: {
+            valueSuffix: '%'
+          }
         }],
         xAxis: {
           events: {
             afterSetExtremes: function(e) {
+              if (in_redraw) return;
+              in_redraw = true;
               var eth_roi = 1, token_roi = 1, chartOb = this;
-              $.each(chartOb.series[0].data,function(i,point){
-                if(point.x >= chartOb.min && point.x <= chartOb.max)
-                  eth_roi *= 1 + point.y / 100;
+              var cumulative_eth_roi = [];
+              var cumulative_token_roi = [];
+
+              $.each(chartOb.series[0].xData,function(i,x){
+                if(x >= chartOb.min && x <= chartOb.max)
+                  eth_roi *= 1 + chartOb.series[0].yData[i] / 100;
+                cumulative_eth_roi.push([x, parseFloat(((eth_roi - 1) * 100).toFixed(2))]);
               });
-              $.each(chartOb.series[1].data,function(i,point){
-                if(point.x >= chartOb.min && point.x <= chartOb.max)
-                  token_roi *= 1 + point.y / 100;
+              $.each(chartOb.series[1].xData,function(i,x){
+                if(x >= chartOb.min && x <= chartOb.max)
+                  token_roi *= 1 + chartOb.series[1].yData[i] / 100;
+                cumulative_token_roi.push([x, parseFloat(((token_roi - 1) * 100).toFixed(2))]);
               });
+
+              if (chartOb.series.length == 5) {
+                chartOb.series[3].setData(cumulative_eth_roi, false);
+                chartOb.series[4].setData(cumulative_token_roi, false);
+              } else {
+                chartOb.chart.addSeries({name: 'ETH ROI', data: cumulative_eth_roi}, false);
+                chartOb.chart.addSeries({name: selected_token + ' ROI', data: cumulative_token_roi}, false);
+              }
+              chartOb.chart.redraw();
 
               var req1 = $.getJSON('https://min-api.cryptocompare.com/data/pricehistorical?fsym=USD&tsyms=ETH,' +
                         $('#tokenSelector').select2('data')[0].text + '&ts=' +
@@ -215,11 +236,13 @@
 
                 $('#report').html(
                   'ROI over selected period: <b>ETH ' +
-                  (eth_roi * 100 - 100).toFixed(2).toString() + '%</b>, <b>' + selected_token + ' ' +
-                  (token_roi * 100 - 100).toFixed(2).toString() + '%</b> (<b>' +
-                  (performance * 100 - 100).toFixed(2).toString() + '%</b> of baseline)'
+                  (eth_roi * 100 - 100).toFixed(2) + '%</b>, <b>' + selected_token + ' ' +
+                  (token_roi * 100 - 100).toFixed(2) + '%</b> (<b>' +
+                  (performance * 100 - 100).toFixed(2) + '%</b> of baseline)'
                 );
               });
+
+              in_redraw = false;
             }
           }
         }
