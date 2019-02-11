@@ -7,7 +7,7 @@ h1 {
     font-weight: 300;
 }
 
-ul {
+.nav ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -15,13 +15,13 @@ ul {
     /*background-color: #ccc;*/
 }
 
-li {
+.nav ul li {
     float: left;
     background-color: #F7F7F7;
-    border-right:5px solid #fff;
+    border-right: 5px solid #fff;
 }
 
-li a {
+.nav ul li a {
     display: block;
     color: black;
     text-align: center;
@@ -29,11 +29,11 @@ li a {
     text-decoration: none;
 }
 
-li a:hover:not(.active) {
+.nav ul li a:hover:not(.active) {
     background-color: #e6e6e6;
 }
 
-.active {
+.nav ul li a.active {
     background-color: #e7ebf4;
     font-weight: bold;
 }
