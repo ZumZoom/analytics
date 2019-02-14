@@ -34,6 +34,7 @@
   <script src="https://code.highcharts.com/modules/data.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+  <script src="https://rawgit.com/notifyjs/notifyjs/master/dist/notify.js"></script>
   <script>
     var csv_url = undefined;
 
@@ -60,6 +61,12 @@
         chart: {
           type: 'area',
           backgroundColor: null,
+          events: {
+            click: function(event) {
+              copyToClipboard(this.hoverPoint.series.name.substring(1));
+              $.notify(this.hoverPoint.series.name.substring(1) + ' copied', 'success');
+            }
+          }
         },
         rangeSelector: {
           selected: 0,
@@ -128,6 +135,24 @@
       csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/volume/' + e.params.data.id + '.csv';
       createChart()
     });
+
+    const copyToClipboard = str => {
+      const el = document.createElement('textarea');
+      el.value = str;
+      el.setAttribute('readonly', '');
+      el.style.position = 'absolute';
+      el.style.left = '-9999px';
+      document.body.appendChild(el);
+      const selected =
+        document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false;
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      if (selected) {
+        document.getSelection().removeAllRanges();
+        document.getSelection().addRange(selected);
+      }
+    };
   </script>
 </body>
 </html>
