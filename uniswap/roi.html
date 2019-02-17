@@ -22,7 +22,7 @@
         <li><a href="./index.html">Liquidity</a></li>
         <li><a href="./providers.html">Liquidity Providers</a></li>
         <li><a class="active" href="#">ROI</a></li>
-        <li><a href="./volume.html">Volume</a></li>
+        <li><a href="./volume.html">Trade Volume</a></li>
       </ul>
     </div>
   </header>
@@ -39,11 +39,10 @@
       <label id="report" style="font-size: 14pt"></label>
 
       <label for="baselineSelector" style="font-size: 14pt">
-        Baseline:
         <select id="baselineSelector" style="width: 300px">
-          <option value="usd" selected="selected">Hodl USD</option>
+          <option id="tokenOption" value="token">Hodl Token</option>
           <option value="eth">Hodl ETH</option>
-          <option value="portfolio">Hodl Uniswap deposit</option>
+          <option value="portfolio" selected="selected">Hodl Uniswap deposit</option>
         </select>
       </label>
     </div>
@@ -56,9 +55,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
   <script>
     var csv_url = undefined;
-    var selected_token = 'DAI';
-    var selected_baseline = 'usd';
     var in_redraw = false;
+    var cur_price, initial_price, dm_roi, cur_loss, performance;
 
     $('#baselineSelector').select2({
       minimumResultsForSearch: -1
@@ -82,10 +80,11 @@
       createChart();
     });
 
+
     function createChart() {
       Highcharts.stockChart('container', {
         rangeSelector: {
-          selected: 3,
+          selected: 1,
           buttons: [{
             type: 'week',
             count: 1,
@@ -117,18 +116,15 @@
           title: {
             text: ''
           },
-          opposite: false
+          opposite: true
         }, {
           labels: {
-            format: '{value} ETH',
-            style: {
-              color: Highcharts.getOptions().colors[2]
-            }
+            format: '{value} ETH'
           },
           title: {
             text: ''
           },
-          opposite: true
+          opposite: false
         }],
         legend: {
           enabled: true,
@@ -152,99 +148,93 @@
           tooltip: {
             valueSuffix: ' ETH'
           },
-          type: 'column'
-        }, {
-          yAxis: 0,
-          zIndex: 1,
-          tooltip: {
-            valueSuffix: '%'
-          }
-        }, {
-          yAxis: 0,
-          zIndex: 1,
-          tooltip: {
-            valueSuffix: '%'
-          }
+          type: 'column',
+          color: '#bbb'
         }],
         xAxis: {
           events: {
             afterSetExtremes: function(e) {
               if (in_redraw) return;
               in_redraw = true;
-              var eth_roi = 1, token_roi = 1, chartOb = this;
-              var cumulative_eth_roi = [];
-              var cumulative_token_roi = [];
+              var chartOb = this, price_ratio;
+              var cumulative_dm_roi = [];
+              var loss = [];
+              var net_position = []
+              dm_roi = 1;
+              initial_price = 0;
 
               $.each(chartOb.series[0].xData,function(i,x){
-                if(x >= chartOb.min && x <= chartOb.max)
-                  eth_roi *= 1 + chartOb.series[0].yData[i] / 100;
-                cumulative_eth_roi.push([x, parseFloat(((eth_roi - 1) * 100).toFixed(2))]);
-              });
-              $.each(chartOb.series[1].xData,function(i,x){
-                if(x >= chartOb.min && x <= chartOb.max)
-                  token_roi *= 1 + chartOb.series[1].yData[i] / 100;
-                cumulative_token_roi.push([x, parseFloat(((token_roi - 1) * 100).toFixed(2))]);
+                if(x >= chartOb.min && x <= chartOb.max) {
+                  if (initial_price == 0) {
+                    initial_price = chartOb.series[1].yData[i];
+                  }
+                  dm_roi *= chartOb.series[0].yData[i];
+                  cumulative_dm_roi.push([x, parseFloat(((dm_roi - 1) * 100).toFixed(2))]);
+                  cur_price = chartOb.series[1].yData[i];
+                  price_ratio = cur_price / initial_price;
+                  cur_loss = 2.0 * Math.sqrt(price_ratio) / (1.0 + price_ratio);
+                  loss.push([x, parseFloat(((cur_loss - 1) * 100).toFixed(2))]);
+                  net_position.push([x, parseFloat(((cur_loss * dm_roi - 1) * 100).toFixed(2))]);
+                }
               });
 
-              if (chartOb.series.length == 5) {
-                chartOb.series[3].setData(cumulative_eth_roi, false);
-                chartOb.series[4].setData(cumulative_token_roi, false);
+              if (chartOb.series.length == 6) {
+                chartOb.series[3].setData(cumulative_dm_roi, false);
+                chartOb.series[4].setData(loss, false);
+                chartOb.series[5].setData(net_position, false);
               } else {
-                chartOb.chart.addSeries({name: 'ETH ROI', data: cumulative_eth_roi}, false);
-                chartOb.chart.addSeries({name: selected_token + ' ROI', data: cumulative_token_roi}, false);
+                chartOb.chart.addSeries({
+                  name: 'Collected Fees',
+                  data: cumulative_dm_roi,
+                  yAxis: 0,
+                  zIndex: 1,
+                  tooltip: {
+                    valueSuffix: '%'
+                  },
+                  color: Highcharts.getOptions().colors[5]
+                }, false);
+                chartOb.chart.addSeries({
+                  name: 'Impermanent Loss',
+                  data: loss,
+                  yAxis: 0,
+                  zIndex: 1,
+                  tooltip: {
+                    valueSuffix: '%'
+                  },
+                  color: Highcharts.getOptions().colors[0]
+                }, false);
+                chartOb.chart.addSeries({
+                  name: 'Net Profit',
+                  data: net_position,
+                  yAxis: 0,
+                  zIndex: 1,
+                  tooltip: {
+                    valueSuffix: '%'
+                  },
+                  color: Highcharts.getOptions().colors[6]
+                }, false);
               }
               chartOb.chart.redraw();
 
-              var req1 = $.getJSON('https://min-api.cryptocompare.com/data/pricehistorical?fsym=USD&tsyms=ETH,' +
-                        $('#tokenSelector').select2('data')[0].text + '&ts=' +
-                        (chartOb.min/1000|0));
+              switch($("#baselineSelector option:selected").val()) {
+                case 'token':
+                  console.log(cur_loss, dm_roi, cur_price, initial_price);
+                  performance = (1 + cur_price / initial_price) * cur_loss * dm_roi / 2;
+                  break;
+                case 'eth':
+                  performance = (1 + initial_price / cur_price) * cur_loss * dm_roi / 2;
+                  break;
+                case 'portfolio':
+                  performance = cur_loss * dm_roi;
+                  break;
+              }
 
-              var req2 = $.getJSON('https://min-api.cryptocompare.com/data/pricehistorical?fsym=USD&tsyms=ETH,' +
-                        $('#tokenSelector').select2('data')[0].text + '&ts=' +
-                        (chartOb.max/1000|0))
+              $('#report').html(
+                'Uniswap returns <b>' +
+                (performance > 1 ? '+' : '') +
+                ((performance - 1) * 100).toFixed(2) + '%</b> from baseline'
+              );
 
-              $.when(req1, req2).done(function(data1, data2) {
-                var prices = [];
-                $.each( data1[0].USD, function( key, val ) {
-                    prices.push(val);
-                });
-                $.each( data2[0].USD, function( key, val ) {
-                    prices.push(val);
-                });
-
-                var depo_tokens = prices[1] / prices[0];
-                var depo_usd = 2 / prices[0];
-
-                var return_eth = 1 * eth_roi + depo_tokens * token_roi * prices[2] / prices[3];
-                var performance;
-                console.log('Deposit:', 1, 'ETH', depo_tokens, 'tokens')
-                console.log('Withdraw:', eth_roi, 'ETH', depo_tokens * token_roi, 'tokens')
-
-                switch($("#baselineSelector option:selected").val()) {
-                  case 'usd':
-                    console.log('USD HODL:', depo_usd, 'USD')
-                    console.log('Uniswap:', return_eth / prices[2], 'USD')
-                    performance = return_eth / prices[2] / depo_usd;
-                    break;
-                  case 'eth':
-                    console.log('ETH HODL:', 2, 'ETH')
-                    console.log('Uniswap:', return_eth, 'ETH')
-                    performance = return_eth / 2;
-                    break;
-                  case 'portfolio':
-                    console.log('Portfolio HODL:', 1 + depo_tokens * prices[2] / prices[3], 'ETH')
-                    console.log('Uniswap:', return_eth, 'ETH')
-                    performance = return_eth / (1 + depo_tokens * prices[2] / prices[3]);
-                    break;
-                }
-
-                $('#report').html(
-                  'ROI over selected period: <b>ETH ' +
-                  (eth_roi * 100 - 100).toFixed(2) + '%</b>, <b>' + selected_token + ' ' +
-                  (token_roi * 100 - 100).toFixed(2) + '%</b> (<b>' +
-                  (performance * 100 - 100).toFixed(2) + '%</b> of baseline)'
-                );
-              });
 
               in_redraw = false;
             }
@@ -256,13 +246,28 @@
     $('#tokenSelector').on('select2:select', function (e) {
       csv_url = window.location.href;
       csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/roi/' + e.params.data.id + '.csv';
-      selected_token = e.params.data.text;
-      createChart()
+      createChart();
     });
 
     $('#baselineSelector').on('select2:select', function (e) {
-      selected_baseline = e.params.data.id;
-      createChart();
+      switch(e.params.data.id) {
+        case 'token':
+          console.log(cur_loss, dm_roi, cur_price, initial_price);
+          performance = (1 + cur_price / initial_price) * cur_loss * dm_roi / 2;
+          break;
+        case 'eth':
+          performance = (1 + initial_price / cur_price) * cur_loss * dm_roi / 2;
+          break;
+        case 'portfolio':
+          performance = cur_loss * dm_roi;
+          break;
+      }
+
+      $('#report').html(
+        'Uniswap returns <b>' +
+        (performance > 1 ? '+' : '') +
+        ((performance - 1) * 100).toFixed(2) + '%</b> from baseline'
+      );
     });
   </script>
 </body>
