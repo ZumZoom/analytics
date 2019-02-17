@@ -9,8 +9,6 @@
   <style>
     #config-container {
       display: flex;                  /* establish flex container */
-      flex-direction: row;            /* default value; can be omitted */
-      flex-wrap: nowrap;              /* default value; can be omitted */
       justify-content: space-between; /* switched from default (flex-start, see below) */
     }
   </style>
@@ -30,7 +28,11 @@
     You need to enable JavaScript to run this app.
   </noscript>
   <div id="root">
-    <h1>Uniswap ROI By Token</h1>
+    <div style="display: flex; justify-content: space-between">
+      <h1>Uniswap ROI By Token</h1>
+      <label style="font-size: 14pt; margin-right: 50px">Calculations description can be found <a href="https://medium.com/@pintail/uniswap-a-good-deal-for-liquidity-providers-104c0b6816f2">here</a> and <a href="https://medium.com/@pintail/understanding-uniswap-returns-cc593f3499ef">there</a></label>
+    </div>
+
     <div id="config-container">
       <select id="tokenSelector" style="width: 300px">
         <option value="dai">DAI</option>
