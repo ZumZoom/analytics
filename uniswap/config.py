@@ -1,4 +1,5 @@
 import json
+import os
 from multiprocessing.pool import ThreadPool
 from web3 import Web3
 
@@ -49,15 +50,17 @@ HARDCODED_INFO = {
     '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413': ('TheDAO', 'TheDAO', 16),
 }
 
-LIQUIDITY_DATA = '../../uniswap/data/liquidity.csv'
+DIST_DIR = '../dist/uniswap/'
 
-PROVIDERS_DATA = '../../uniswap/data/providers/{}.csv'
+LIQUIDITY_DATA = os.path.join(DIST_DIR, 'data/liquidity.csv')
 
-ROI_DATA = '../../uniswap/data/roi/{}.csv'
+PROVIDERS_DATA = os.path.join(DIST_DIR, 'data/providers/{}.csv')
 
-VOLUME_DATA = '../../uniswap/data/volume/{}.csv'
+ROI_DATA = os.path.join(DIST_DIR, 'data/roi/{}.csv')
 
-TOKENS_DATA = '../../uniswap/data/tokens.json'
+VOLUME_DATA = os.path.join(DIST_DIR, 'data/volume/{}.csv')
+
+TOKENS_DATA = os.path.join(DIST_DIR, 'data/tokens.json')
 
 EVENT_TRANSFER = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
 
