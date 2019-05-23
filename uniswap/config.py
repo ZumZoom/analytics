@@ -60,6 +60,8 @@ ROI_DATA = os.path.join(DIST_DIR, 'data/roi/{}.csv')
 
 VOLUME_DATA = os.path.join(DIST_DIR, 'data/volume/{}.csv')
 
+TOTAL_VOLUME_DATA = os.path.join(DIST_DIR, 'data/total_volume.csv')
+
 TOKENS_DATA = os.path.join(DIST_DIR, 'data/tokens.json')
 
 EVENT_TRANSFER = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'

@@ -14,7 +14,7 @@ from config import uniswap_factory, pool, web3, UNISWAP_EXCHANGE_ABI, STR_ERC_20
     STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, UNISWAP_BEGIN_BLOCK, \
     LOGS_BLOCKS_CHUNK, LIQUIDITY_DATA, PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, \
     ALL_EVENTS, EVENT_TRANSFER, EVENT_ADD_LIQUIDITY, EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, \
-    EVENT_TOKEN_PURCHASE, VOLUME_DATA
+    EVENT_TOKEN_PURCHASE, VOLUME_DATA, TOTAL_VOLUME_DATA
 from exchange_info import ExchangeInfo
 from roi_info import RoiInfo
 from utils import timeit, bytes_to_str
@@ -253,7 +253,7 @@ def populate_volume(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
 
 
 def is_valuable(info: ExchangeInfo) -> bool:
-    return info.eth_balance >= 10 * ETH
+    return info.eth_balance >= 20 * ETH
 
 
 @timeit
@@ -333,6 +333,21 @@ def save_volume_data(infos: List[ExchangeInfo]):
                                       for t in info.valuable_traders + ['Other']]) + '\n')
 
 
+def save_total_volume_data(infos: List[ExchangeInfo]):
+    timestamps = load_timestamps()
+
+    valuable_infos = [info for info in infos if is_valuable(info)]
+    other_infos = [info for info in infos if not is_valuable(info)]
+
+    with open(TOTAL_VOLUME_DATA, 'w') as out_f:
+        out_f.write(','.join(['timestamp'] + [i.token_symbol for i in valuable_infos] + ['Other\n']))
+        for j in range(len(timestamps)):
+            out_f.write(','.join([str(timestamps[j] * 1000)] +
+                                 ['{:.2f}'.format(sum(i.volume[j].values()) / ETH) for i in valuable_infos] +
+                                 ['{:.2f}'.format(sum(sum(i.volume[j].values()) for i in other_infos) / ETH)]
+                                 ) + '\n')
+
+
 def save_raw_data(infos: List[ExchangeInfo]):
     with open(INFOS_DUMP, 'wb') as out_f:
         pickle.dump(infos, out_f)
@@ -386,3 +401,4 @@ if __name__ == '__main__':
     save_providers_data(valuable_infos)
     save_roi_data(valuable_infos)
     save_volume_data(valuable_infos)
+    save_total_volume_data(infos)
