@@ -112,7 +112,7 @@
         afterSetExtremes: function(e) {
           var chartOb = this;
           $("#report").html(
-            'Total trade volume over period <b>' +
+            'Total: <b>' +
             this.series.reduce(function(a, b) {
               return a + b.data.reduce(function(a, b) {
                 return a + (b.x >= chartOb.min && b.x <= chartOb.max ? b.y : 0);
