@@ -4,17 +4,18 @@ import os
 import pickle
 from collections import defaultdict
 from math import sqrt
-
-from retrying import retry
 from typing import List, Iterable
 
+import requests
+from retrying import retry
 from web3.utils.events import get_event_data
 
-from config import uniswap_factory, pool, web3, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, HARDCODED_INFO, \
+from config import uniswap_factory, web3, pool, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, HARDCODED_INFO, \
     STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, UNISWAP_BEGIN_BLOCK, \
-    LOGS_BLOCKS_CHUNK, LIQUIDITY_DATA, PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, \
+    LIQUIDITY_DATA, PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, \
     ALL_EVENTS, EVENT_TRANSFER, EVENT_ADD_LIQUIDITY, EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, \
-    EVENT_TOKEN_PURCHASE, VOLUME_DATA, TOTAL_VOLUME_DATA
+    EVENT_TOKEN_PURCHASE, VOLUME_DATA, TOTAL_VOLUME_DATA, web3_infura, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, \
+    LOGS_BLOCKS_CHUNK
 from exchange_info import ExchangeInfo
 from roi_info import RoiInfo
 from utils import timeit, bytes_to_str
@@ -29,7 +30,7 @@ def load_token_count() -> int:
 def load_tokens(token_count: int) -> List[str]:
     if not token_count:
         token_count = load_token_count()
-    tokens = pool.map(lambda i: uniswap_factory.functions.getTokenWithId(i).call(), range(1, token_count + 1))
+    tokens = [uniswap_factory.functions.getTokenWithId(i).call() for i in range(1, token_count + 1)]
     logging.info('Found {} tokens'.format(len(tokens)))
     return tokens
 
@@ -38,7 +39,7 @@ def load_tokens(token_count: int) -> List[str]:
 def load_exchanges(tokens: List[str]) -> List[str]:
     if not tokens:
         tokens = load_tokens()
-    exchanges = pool.map(lambda t: uniswap_factory.functions.getExchange(t).call(), tokens)
+    exchanges = [uniswap_factory.functions.getExchange(t).call() for t in tokens]
     logging.info('Found {} exchanges'.format(len(exchanges)))
     return exchanges
 
@@ -69,7 +70,11 @@ def load_exchange_data_impl(token_address, exchange_address):
                     logging.warning('FUCKED UP {}'.format(token_address))
                     return None
 
-    token_balance = token.functions.balanceOf(exchange.address).call(block_identifier=CURRENT_BLOCK)
+    try:
+        token_balance = token.functions.balanceOf(exchange.address).call(block_identifier=CURRENT_BLOCK)
+    except:
+        logging.warning('FUCKED UP {}'.format(token_address))
+        return None
     eth_balance = web3.eth.getBalance(exchange.address, block_identifier=CURRENT_BLOCK)
     return ExchangeInfo(token.address,
                         token_name,
@@ -86,7 +91,7 @@ def load_exchange_infos(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
     tokens = load_tokens(token_count)
     exchanges = load_exchanges(tokens)
 
-    new_infos = [info for info in pool.starmap(load_exchange_data_impl, zip(tokens, exchanges)) if info]
+    new_infos = filter(None, [load_exchange_data_impl(t, e) for (t, e) in zip(tokens, exchanges)])
     if infos:
         known_tokens = dict((info.token_address, info) for info in infos)
         for new_info in new_infos:
@@ -109,20 +114,32 @@ def get_chart_range(start: int = HISTORY_BEGIN_BLOCK) -> Iterable[int]:
 
 @timeit
 def load_timestamps() -> List[int]:
-    return pool.map(lambda n: web3.eth.getBlock(n)['timestamp'], get_chart_range())
+    return [web3.eth.getBlock(n)['timestamp'] for n in get_chart_range()]
 
 
 def get_logs(address: str, topics: List, start_block: int) -> List:
     @retry(stop_max_attempt_number=3, wait_fixed=1)
     def get_chunk(start):
-        return web3.eth.getLogs({
-            'fromBlock': start,
-            'toBlock': min(start + LOGS_BLOCKS_CHUNK, CURRENT_BLOCK),
-            'address': address,
-            'topics': topics})
+        resp = requests.post(
+            GRAPHQL_ENDPOINT,
+            json={'query': GRAPHQL_LOGS_QUERY.format(fromBlock=start,
+                                                     toBlock=min(start + LOGS_BLOCKS_CHUNK, CURRENT_BLOCK),
+                                                     addresses=json.dumps([address]),
+                                                     topics=json.dumps(topics))}
+        )
+        return postprocess_graphql_response(resp.json()['data']['logs'])
 
     log_chunks = pool.map(get_chunk, range(start_block, CURRENT_BLOCK, LOGS_BLOCKS_CHUNK))
+    logging.info('Loaded logs for {} successfully'.format(address))
     return [log for chunk in log_chunks for log in chunk]
+
+
+def postprocess_graphql_response(logs: List[dict]) -> List[dict]:
+    return [{
+        'topics': log['topics'],
+        'blockNumber': int(log['transaction']['block']['number'], 16),
+        'data': log['data']
+    } for log in logs]
 
 
 @timeit
@@ -259,10 +276,10 @@ def is_valuable(info: ExchangeInfo) -> bool:
 @timeit
 def populate_liquidity_history(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
     for info in infos:
-        exchange = web3.eth.contract(abi=UNISWAP_EXCHANGE_ABI, address=info.exchange_address)
         history_len = len(info.history)
-        new_history = pool.map(lambda block_number: web3.eth.getBalance(exchange.address, block_number) / ETH,
-                               get_chart_range(HISTORY_BEGIN_BLOCK + history_len * HISTORY_CHUNK_SIZE))
+        new_history = pool.map(
+            lambda block_number: web3_infura.eth.getBalance(info.exchange_address, block_number) / ETH,
+            get_chart_range(HISTORY_BEGIN_BLOCK + history_len * HISTORY_CHUNK_SIZE))
         info.history += new_history
 
     print('Loaded history of balances of {} exchanges'.format(len(infos)))
@@ -326,7 +343,8 @@ def save_volume_data(infos: List[ExchangeInfo]):
 
     for info in infos:
         with open(VOLUME_DATA.format(info.token_symbol.lower()), 'w') as out_f:
-            out_f.write(','.join(['timestamp'] + ['\u200b{}'.format(t) for t in info.valuable_traders] + ['Other']) + '\n')
+            out_f.write(','.join(['timestamp'] + ['\u200b{}'.format(t) for t in info.valuable_traders] +
+                                 ['Other']) + '\n')
             for j in range(len(timestamps)):
                 out_f.write(','.join([str(timestamps[j] * 1000)] +
                                      ['{:.2f}'.format(info.volume[j][t] / ETH) if info.volume[j][t] else ''
@@ -375,6 +393,8 @@ if __name__ == '__main__':
         saved_block = load_last_block()
         infos = load_raw_data()
         if saved_block + 1000 < CURRENT_BLOCK:
+            logging.info('Last seen block: {}, current block: {}, loading data for {} blocks...'.format(
+                saved_block, CURRENT_BLOCK, CURRENT_BLOCK - saved_block))
             infos = sorted(load_exchange_infos(infos), key=lambda x: x.eth_balance, reverse=True)
             load_logs(infos)
             populate_liquidity_history(infos)
@@ -386,6 +406,7 @@ if __name__ == '__main__':
         else:
             logging.info('Loaded data is up to date')
     else:
+        logging.info('Starting from scratch...')
         infos = sorted(load_exchange_infos([]), key=lambda x: x.eth_balance, reverse=True)
         load_logs(infos)
         populate_liquidity_history(infos)

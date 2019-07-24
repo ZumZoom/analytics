@@ -1,14 +1,16 @@
 import json
 import os
 from multiprocessing.pool import ThreadPool
-from web3 import Web3
+from web3 import Web3, IPCProvider
 
 from custom_http_provider import CustomHTTPProvider
 
 INFURA_ADDRESS = 'https://mainnet.infura.io/v3/4facf9a657054a2287e6a4bec21046a3'
 DEFAULT_REQUEST_TIMEOUT = 30
 
-web3 = Web3(CustomHTTPProvider(endpoint_uri=INFURA_ADDRESS, request_kwargs={'timeout': DEFAULT_REQUEST_TIMEOUT}))
+web3_infura = Web3(CustomHTTPProvider(endpoint_uri=INFURA_ADDRESS, request_kwargs={'timeout': DEFAULT_REQUEST_TIMEOUT}))
+
+web3 = Web3(IPCProvider())
 
 ETH = 10 ** 18
 
@@ -22,7 +24,7 @@ CURRENT_BLOCK = web3.eth.blockNumber
 
 LOGS_BLOCKS_CHUNK = 1000
 
-THREADS = 64
+THREADS = 8
 
 pool = ThreadPool(THREADS)
 
@@ -79,3 +81,12 @@ ALL_EVENTS = [EVENT_TRANSFER, EVENT_TOKEN_PURCHASE, EVENT_ETH_PURCHASE, EVENT_AD
 INFOS_DUMP = 'infos.dump'
 
 LAST_BLOCK_DUMP = 'last_block.dump'
+
+GRAPHQL_LOGS_QUERY = '''
+{{
+    logs(filter: {{fromBlock: {fromBlock}, toBlock: {toBlock}, addresses: {addresses}, topics: {topics}}}) {{
+    data topics transaction {{ block {{ number }} }}
+    }}
+}}'''
+
+GRAPHQL_ENDPOINT = 'http://localhost:8547/graphql'
