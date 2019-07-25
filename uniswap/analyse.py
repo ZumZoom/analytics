@@ -7,15 +7,15 @@ from math import sqrt
 from typing import List, Iterable
 
 import requests
+from hexbytes import HexBytes
 from retrying import retry
 from web3.utils.events import get_event_data
 
-from config import uniswap_factory, web3, pool, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, HARDCODED_INFO, \
+from config import uniswap_factory, web3, web3_infura, pool, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, HARDCODED_INFO, \
     STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, UNISWAP_BEGIN_BLOCK, \
-    LIQUIDITY_DATA, PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, \
-    ALL_EVENTS, EVENT_TRANSFER, EVENT_ADD_LIQUIDITY, EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, \
-    EVENT_TOKEN_PURCHASE, VOLUME_DATA, TOTAL_VOLUME_DATA, web3_infura, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, \
-    LOGS_BLOCKS_CHUNK
+    LIQUIDITY_DATA, PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, ALL_EVENTS, EVENT_TRANSFER, \
+    EVENT_ADD_LIQUIDITY, EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, EVENT_TOKEN_PURCHASE, VOLUME_DATA, \
+    TOTAL_VOLUME_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK
 from exchange_info import ExchangeInfo
 from roi_info import RoiInfo
 from utils import timeit, bytes_to_str
@@ -130,15 +130,19 @@ def get_logs(address: str, topics: List, start_block: int) -> List:
         return postprocess_graphql_response(resp.json()['data']['logs'])
 
     log_chunks = pool.map(get_chunk, range(start_block, CURRENT_BLOCK, LOGS_BLOCKS_CHUNK))
-    logging.info('Loaded logs for {} successfully'.format(address))
     return [log for chunk in log_chunks for log in chunk]
 
 
 def postprocess_graphql_response(logs: List[dict]) -> List[dict]:
     return [{
-        'topics': log['topics'],
+        'topics': [HexBytes(t) for t in log['topics']],
         'blockNumber': int(log['transaction']['block']['number'], 16),
-        'data': log['data']
+        'data': log['data'],
+        'logIndex': None,
+        'transactionIndex': None,
+        'transactionHash': None,
+        'address': None,
+        'blockHash': None
     } for log in logs]
 
 
