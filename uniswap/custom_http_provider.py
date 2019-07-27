@@ -8,7 +8,7 @@ from web3.utils.caching import (
 )
 
 
-def _remove_session(key, session):
+def _remove_session(_, session):
     session.close()
 
 
