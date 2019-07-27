@@ -3,8 +3,10 @@ import logging
 import os
 import pickle
 from collections import defaultdict
+from itertools import groupby
 from math import sqrt
-from typing import List, Iterable
+from operator import itemgetter
+from typing import List, Iterable, Dict
 
 import requests
 from hexbytes import HexBytes
@@ -12,10 +14,10 @@ from retrying import retry
 from web3.utils.events import get_event_data
 
 from config import uniswap_factory, web3, web3_infura, pool, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, HARDCODED_INFO, \
-    STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, UNISWAP_BEGIN_BLOCK, \
-    LIQUIDITY_DATA, PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, ALL_EVENTS, EVENT_TRANSFER, \
-    EVENT_ADD_LIQUIDITY, EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, EVENT_TOKEN_PURCHASE, VOLUME_DATA, \
-    TOTAL_VOLUME_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK
+    STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, LIQUIDITY_DATA, \
+    PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, ALL_EVENTS, EVENT_TRANSFER, EVENT_ADD_LIQUIDITY, \
+    EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, EVENT_TOKEN_PURCHASE, VOLUME_DATA, TOTAL_VOLUME_DATA, \
+    GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK
 from exchange_info import ExchangeInfo
 from roi_info import RoiInfo
 from utils import timeit, bytes_to_str
@@ -117,20 +119,22 @@ def load_timestamps() -> List[int]:
     return [web3.eth.getBlock(n)['timestamp'] for n in get_chart_range()]
 
 
-def get_logs(address: str, topics: List, start_block: int) -> List:
+def get_logs(addresses: List[str], topics: List, start_block: int) -> Dict[int, List]:
     @retry(stop_max_attempt_number=3, wait_fixed=1)
     def get_chunk(start):
         resp = requests.post(
             GRAPHQL_ENDPOINT,
             json={'query': GRAPHQL_LOGS_QUERY.format(fromBlock=start,
                                                      toBlock=min(start + LOGS_BLOCKS_CHUNK, CURRENT_BLOCK),
-                                                     addresses=json.dumps([address]),
+                                                     addresses=json.dumps(addresses),
                                                      topics=json.dumps(topics))}
         )
         return postprocess_graphql_response(resp.json()['data']['logs'])
 
-    log_chunks = pool.map(get_chunk, range(start_block, CURRENT_BLOCK, LOGS_BLOCKS_CHUNK))
-    return [log for chunk in log_chunks for log in chunk]
+    log_chunks = [get_chunk(s) for s in range(start_block, CURRENT_BLOCK, LOGS_BLOCKS_CHUNK)]
+    logs = [log for chunk in log_chunks for log in chunk]
+    logs.sort(key=lambda l: (l['address'], l['blockNumber']))
+    return dict([*groupby(logs, itemgetter('address'))])
 
 
 def postprocess_graphql_response(logs: List[dict]) -> List[dict]:
@@ -141,21 +145,19 @@ def postprocess_graphql_response(logs: List[dict]) -> List[dict]:
         'logIndex': None,
         'transactionIndex': None,
         'transactionHash': None,
-        'address': None,
+        'address': log['account']['address'],
         'blockHash': None
     } for log in logs]
 
 
 @timeit
-def load_logs(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
+def load_logs(start_block: int, infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
+    addresses = [info.exchange_address for info in infos]
+    new_logs = get_logs(addresses, [ALL_EVENTS], start_block)
     for info in infos:
-        if info.logs:
-            block_number_to_check = info.logs[-1]['blockNumber'] + 1
-        else:
-            block_number_to_check = UNISWAP_BEGIN_BLOCK
-        exchange = web3.eth.contract(abi=UNISWAP_EXCHANGE_ABI, address=info.exchange_address)
-        new_logs = get_logs(exchange.address, [ALL_EVENTS], block_number_to_check)
-        info.logs += new_logs
+        new_exchange_logs = new_logs.get(info.exchange_address)
+        if new_exchange_logs:
+            info.logs += new_exchange_logs
 
     logging.info('Loaded transfer logs for {} exchanges'.format(len(infos)))
     return infos
@@ -400,7 +402,7 @@ if __name__ == '__main__':
             logging.info('Last seen block: {}, current block: {}, loading data for {} blocks...'.format(
                 saved_block, CURRENT_BLOCK, CURRENT_BLOCK - saved_block))
             infos = sorted(load_exchange_infos(infos), key=lambda x: x.eth_balance, reverse=True)
-            load_logs(infos)
+            load_logs(saved_block, infos)
             populate_liquidity_history(infos)
             populate_providers(infos)
             populate_roi(infos)
@@ -412,7 +414,7 @@ if __name__ == '__main__':
     else:
         logging.info('Starting from scratch...')
         infos = sorted(load_exchange_infos([]), key=lambda x: x.eth_balance, reverse=True)
-        load_logs(infos)
+        load_logs(HISTORY_BEGIN_BLOCK, infos)
         populate_liquidity_history(infos)
         populate_providers(infos)
         populate_roi(infos)

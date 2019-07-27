@@ -85,7 +85,7 @@ LAST_BLOCK_DUMP = 'last_block.dump'
 GRAPHQL_LOGS_QUERY = '''
 {{
     logs(filter: {{fromBlock: {fromBlock}, toBlock: {toBlock}, addresses: {addresses}, topics: {topics}}}) {{
-    data topics transaction {{ block {{ number }} }}
+    data account {{ address }} topics transaction {{ block {{ number }} }}
     }}
 }}'''
 
