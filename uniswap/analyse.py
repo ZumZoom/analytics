@@ -131,7 +131,7 @@ def get_logs(addresses: List[str], topics: List, start_block: int) -> Dict[str, 
         )
         return postprocess_graphql_response(resp.json()['data']['logs'])
 
-    log_chunks = [get_chunk(s) for s in range(start_block, CURRENT_BLOCK, LOGS_BLOCKS_CHUNK)]
+    log_chunks = pool.map(get_chunk, range(start_block, CURRENT_BLOCK, LOGS_BLOCKS_CHUNK))
     logs = [log for chunk in log_chunks for log in chunk]
     logs.sort(key=lambda l: (l['address'], l['blockNumber']))
     return dict((k, list(g)) for k, g in groupby(logs, itemgetter('address')))
