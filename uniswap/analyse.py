@@ -9,6 +9,7 @@ from operator import itemgetter
 from typing import List, Iterable, Dict
 
 import requests
+from eth_utils import to_checksum_address
 from hexbytes import HexBytes
 from retrying import retry
 from web3.utils.events import get_event_data
@@ -145,7 +146,7 @@ def postprocess_graphql_response(logs: List[dict]) -> List[dict]:
         'logIndex': None,
         'transactionIndex': None,
         'transactionHash': None,
-        'address': log['account']['address'],
+        'address': to_checksum_address(log['account']['address']),
         'blockHash': None
     } for log in logs]
 
