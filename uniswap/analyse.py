@@ -119,7 +119,7 @@ def load_timestamps() -> List[int]:
     return [web3.eth.getBlock(n)['timestamp'] for n in get_chart_range()]
 
 
-def get_logs(addresses: List[str], topics: List, start_block: int) -> Dict[int, List]:
+def get_logs(addresses: List[str], topics: List, start_block: int) -> Dict[str, List]:
     @retry(stop_max_attempt_number=3, wait_fixed=1)
     def get_chunk(start):
         resp = requests.post(
@@ -134,7 +134,7 @@ def get_logs(addresses: List[str], topics: List, start_block: int) -> Dict[int, 
     log_chunks = [get_chunk(s) for s in range(start_block, CURRENT_BLOCK, LOGS_BLOCKS_CHUNK)]
     logs = [log for chunk in log_chunks for log in chunk]
     logs.sort(key=lambda l: (l['address'], l['blockNumber']))
-    return dict([*groupby(logs, itemgetter('address'))])
+    return dict((k, list(g)) for k, g in groupby(logs, itemgetter('address')))
 
 
 def postprocess_graphql_response(logs: List[dict]) -> List[dict]:
