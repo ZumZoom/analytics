@@ -126,13 +126,13 @@ def get_logs(addresses: List[str], topics: List, start_block: int) -> Dict[str, 
         resp = requests.post(
             GRAPHQL_ENDPOINT,
             json={'query': GRAPHQL_LOGS_QUERY.format(fromBlock=start,
-                                                     toBlock=min(start + LOGS_BLOCKS_CHUNK, CURRENT_BLOCK),
+                                                     toBlock=min(start + LOGS_BLOCKS_CHUNK - 1, CURRENT_BLOCK),
                                                      addresses=json.dumps(addresses),
                                                      topics=json.dumps(topics))}
         )
         return postprocess_graphql_response(resp.json()['data']['logs'])
 
-    log_chunks = pool.map(get_chunk, range(start_block, CURRENT_BLOCK, LOGS_BLOCKS_CHUNK))
+    log_chunks = pool.map(get_chunk, range(start_block, CURRENT_BLOCK + 1, LOGS_BLOCKS_CHUNK))
     logs = [log for chunk in log_chunks for log in chunk]
     logs.sort(key=lambda l: (l['address'], l['blockNumber']))
     return dict((k, list(g)) for k, g in groupby(logs, itemgetter('address')))
@@ -393,17 +393,21 @@ def load_last_block() -> int:
         return pickle.load(in_f)
 
 
+def update_is_required(last_processed_block: int) -> bool:
+    return (CURRENT_BLOCK - HISTORY_BEGIN_BLOCK) // HISTORY_CHUNK_SIZE * HISTORY_CHUNK_SIZE + HISTORY_BEGIN_BLOCK > last_processed_block
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(message)s')
 
     if os.path.exists(LAST_BLOCK_DUMP):
         saved_block = load_last_block()
         infos = load_raw_data()
-        if saved_block + 1000 < CURRENT_BLOCK:
+        if update_is_required(saved_block):
             logging.info('Last seen block: {}, current block: {}, loading data for {} blocks...'.format(
                 saved_block, CURRENT_BLOCK, CURRENT_BLOCK - saved_block))
             infos = sorted(load_exchange_infos(infos), key=lambda x: x.eth_balance, reverse=True)
-            load_logs(saved_block, infos)
+            load_logs(saved_block + 1, infos)
             populate_liquidity_history(infos)
             populate_providers(infos)
             populate_roi(infos)
