@@ -48,7 +48,6 @@ def load_exchanges(tokens: List[str]) -> List[str]:
 
 
 def load_exchange_data_impl(token_address, exchange_address):
-    exchange = web3.eth.contract(abi=UNISWAP_EXCHANGE_ABI, address=exchange_address)
     token = web3.eth.contract(abi=STR_ERC_20_ABI, address=token_address)
     if token_address in HARDCODED_INFO:
         token_name, token_symbol, token_decimals = HARDCODED_INFO[token_address]
@@ -74,16 +73,16 @@ def load_exchange_data_impl(token_address, exchange_address):
                     return None
 
     try:
-        token_balance = token.functions.balanceOf(exchange.address).call(block_identifier=CURRENT_BLOCK)
+        token_balance = token.functions.balanceOf(exchange_address).call(block_identifier=CURRENT_BLOCK)
     except:
         logging.warning('FUCKED UP {}'.format(token_address))
         return None
-    eth_balance = web3.eth.getBalance(exchange.address, block_identifier=CURRENT_BLOCK)
-    return ExchangeInfo(token.address,
+    eth_balance = web3.eth.getBalance(exchange_address, block_identifier=CURRENT_BLOCK)
+    return ExchangeInfo(token_address,
                         token_name,
                         token_symbol,
                         token_decimals,
-                        exchange.address,
+                        exchange_address,
                         eth_balance,
                         token_balance)
 
