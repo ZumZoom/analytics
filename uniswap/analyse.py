@@ -192,7 +192,7 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
         eth_balance, token_balance = 0, 0
         for block_number in get_chart_range():
             dm_numerator, dm_denominator, trade_volume = 1, 1, 0
-            while i < len(info.logs) and info.logs[i]['blockNumber'] < block_number:
+            while i < len(info.logs) and info.logs[i]['blockNumber'] <= block_number:
                 log = info.logs[i]
                 i += 1
                 topic = log['topics'][0].hex()
