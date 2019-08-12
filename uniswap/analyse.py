@@ -299,8 +299,9 @@ def save_tokens(infos: List[ExchangeInfo]):
                   indent=1)
 
 
-def save_liquidity_data(infos: List[ExchangeInfo]):
-    timestamps = load_timestamps()
+def save_liquidity_data(infos: List[ExchangeInfo], timestamps: List[int]):
+    if not timestamps:
+        timestamps = load_timestamps()
 
     valuable_infos = [info for info in infos if is_valuable(info)]
     other_infos = [info for info in infos if not is_valuable(info)]
@@ -329,8 +330,9 @@ def save_providers_data(infos: List[ExchangeInfo]):
                 out_f.write('Other,{:.2f}\n'.format(info.eth_balance * remaining_supply / total_supply / ETH))
 
 
-def save_roi_data(infos: List[ExchangeInfo]):
-    timestamps = load_timestamps()
+def save_roi_data(infos: List[ExchangeInfo], timestamps: List[int]):
+    if not timestamps:
+        timestamps = load_timestamps()
 
     for info in infos:
         with open(ROI_DATA.format(info.token_symbol.lower()), 'w') as out_f:
@@ -344,8 +346,9 @@ def save_roi_data(infos: List[ExchangeInfo]):
                                       '{:.2f}'.format(info.roi[j].trade_volume / ETH)]) + '\n')
 
 
-def save_volume_data(infos: List[ExchangeInfo]):
-    timestamps = load_timestamps()
+def save_volume_data(infos: List[ExchangeInfo], timestamps: List[int]):
+    if not timestamps:
+        timestamps = load_timestamps()
 
     for info in infos:
         with open(VOLUME_DATA.format(info.token_symbol.lower()), 'w') as out_f:
@@ -357,8 +360,9 @@ def save_volume_data(infos: List[ExchangeInfo]):
                                       for t in info.valuable_traders + ['Other']]) + '\n')
 
 
-def save_total_volume_data(infos: List[ExchangeInfo]):
-    timestamps = load_timestamps()
+def save_total_volume_data(infos: List[ExchangeInfo], timestamps: List[int]):
+    if not timestamps:
+        timestamps = load_timestamps()
 
     valuable_infos = [info for info in infos if is_valuable(info)]
     other_infos = [info for info in infos if not is_valuable(info)]
@@ -396,7 +400,7 @@ def update_is_required(last_processed_block: int) -> bool:
     return (CURRENT_BLOCK - HISTORY_BEGIN_BLOCK) // HISTORY_CHUNK_SIZE * HISTORY_CHUNK_SIZE + HISTORY_BEGIN_BLOCK > last_processed_block
 
 
-if __name__ == '__main__':
+def main():
     logging.basicConfig(level=logging.INFO, format='%(message)s')
 
     if os.path.exists(LAST_BLOCK_DUMP):
@@ -427,9 +431,15 @@ if __name__ == '__main__':
         save_raw_data(infos)
 
     valuable_infos = [info for info in infos if is_valuable(info)]
+    timestamps = load_timestamps()
+
     save_tokens(valuable_infos)
-    save_liquidity_data(infos)
+    save_liquidity_data(infos, timestamps)
     save_providers_data(valuable_infos)
-    save_roi_data(valuable_infos)
-    save_volume_data(valuable_infos)
-    save_total_volume_data(infos)
+    save_roi_data(valuable_infos, timestamps)
+    save_volume_data(valuable_infos, timestamps)
+    save_total_volume_data(infos, timestamps)
+
+
+if __name__ == '__main__':
+    main()
