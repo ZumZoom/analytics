@@ -228,7 +228,7 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
             try:
                 info.roi.append(RoiInfo(sqrt(dm_numerator / dm_denominator), eth_balance, token_balance, trade_volume))
             except ValueError:
-                print(info.token_symbol, info.exchange_address)
+                logging.error(info.token_symbol, info.exchange_address)
 
     logging.info('Loaded info about roi of {} exchanges'.format(len(infos)))
     return infos
@@ -288,7 +288,7 @@ def populate_liquidity_history(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
             get_chart_range(HISTORY_BEGIN_BLOCK + history_len * HISTORY_CHUNK_SIZE))
         info.history += new_history
 
-    print('Loaded history of balances of {} exchanges'.format(len(infos)))
+    logging.info('Loaded history of balances of {} exchanges'.format(len(infos)))
     return infos
 
 
