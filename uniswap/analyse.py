@@ -119,6 +119,7 @@ def load_timestamps() -> List[int]:
     return [web3.eth.getBlock(n)['timestamp'] for n in get_chart_range()]
 
 
+@timeit
 def get_logs(addresses: List[str], topics: List, start_block: int) -> Dict[str, List]:
     @retry(stop_max_attempt_number=3, wait_fixed=1)
     def get_chunk(start):
@@ -142,7 +143,7 @@ def postprocess_graphql_response(logs: List[dict]) -> List[dict]:
         'topics': [HexBytes(t) for t in log['topics']],
         'blockNumber': int(log['transaction']['block']['number'], 16),
         'data': log['data'],
-        'logIndex': None,
+        'logIndex': log['index'],
         'transactionIndex': None,
         'transactionHash': None,
         'address': to_checksum_address(log['account']['address']),
@@ -152,15 +153,29 @@ def postprocess_graphql_response(logs: List[dict]) -> List[dict]:
 
 @timeit
 def load_logs(start_block: int, infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
-    addresses = [info.exchange_address for info in infos]
-    new_logs = get_logs(addresses, [ALL_EVENTS], start_block)
+    exchange_addresses = [info.exchange_address for info in infos]
+    token_addresses = [info.token_address for info in infos]
+    exchange_logs = get_logs(exchange_addresses, [ALL_EVENTS], start_block)
+    token_logs = get_logs(token_addresses, [[EVENT_TRANSFER], [], exchange_addresses], start_block)
     for info in infos:
-        new_exchange_logs = new_logs.get(info.exchange_address)
+        new_exchange_logs = exchange_logs.get(info.exchange_address)
         if new_exchange_logs:
             info.logs += new_exchange_logs
+        new_token_logs = token_logs.get(info.token_address)
+        if new_token_logs:
+            info.logs.extend(filter(transfers_to_address_only(info.exchange_address), new_token_logs))
+        info.logs.sort(key=lambda l: (l['blockNumber'], l['logIndex']))
 
     logging.info('Loaded transfer logs for {} exchanges'.format(len(infos)))
     return infos
+
+
+def transfers_to_address_only(address: str):
+    def foo(log):
+        topic_to = log['topics'][2].hex()
+        return address == to_checksum_address(topic_to[:2] + topic_to[26:])
+
+    return foo
 
 
 @timeit
@@ -169,7 +184,7 @@ def populate_providers(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
         exchange = web3.eth.contract(abi=UNISWAP_EXCHANGE_ABI, address=info.exchange_address)
         info.providers = defaultdict(int)
         for log in info.logs:
-            if log['topics'][0].hex() != EVENT_TRANSFER:
+            if log['topics'][0].hex() != EVENT_TRANSFER or log['address'] != info.exchange_address:
                 continue
             event = get_event_data(exchange.events.Transfer._get_event_abi(), log)
             if event['args']['from'] == '0x0000000000000000000000000000000000000000':
@@ -194,10 +209,23 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
             dm_numerator, dm_denominator, trade_volume = 1, 1, 0
             while i < len(info.logs) and info.logs[i]['blockNumber'] <= block_number:
                 log = info.logs[i]
-                i += 1
                 topic = log['topics'][0].hex()
+                i += 1
                 if topic == EVENT_TRANSFER:
-                    continue
+                    if log['address'] == info.exchange_address:
+                        # skip liquidity token transfers
+                        continue
+                    elif i < len(info.logs) and info.logs[i]['blockNumber'] == log['blockNumber'] and \
+                            info.logs[i]['topics'][0].hex() in {EVENT_ETH_PURCHASE, EVENT_ADD_LIQUIDITY}:
+                        # skip token transfers that are part of token swaps or liquidity supplies
+                        continue
+                    else:
+                        event = get_event_data(exchange.events.Transfer._get_event_abi(), log)
+                        if event['args']['to'] != info.exchange_address:
+                            continue
+                        dm_numerator *= token_balance + event['args']['value']
+                        dm_denominator *= token_balance
+                        token_balance += event['args']['value']
                 elif topic == EVENT_ADD_LIQUIDITY:
                     event = get_event_data(exchange.events.AddLiquidity._get_event_abi(), log)
                     eth_balance += event['args']['eth_amount']
@@ -227,8 +255,8 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
 
             try:
                 info.roi.append(RoiInfo(sqrt(dm_numerator / dm_denominator), eth_balance, token_balance, trade_volume))
-            except ValueError:
-                logging.error(info.token_symbol, info.exchange_address)
+            except ZeroDivisionError:
+                logging.error("{} {} {} {}".format(info.token_symbol, info.exchange_address, i, block_number))
 
     logging.info('Loaded info about roi of {} exchanges'.format(len(infos)))
     return infos
@@ -397,7 +425,8 @@ def load_last_block() -> int:
 
 
 def update_is_required(last_processed_block: int) -> bool:
-    return (CURRENT_BLOCK - HISTORY_BEGIN_BLOCK) // HISTORY_CHUNK_SIZE * HISTORY_CHUNK_SIZE + HISTORY_BEGIN_BLOCK > last_processed_block
+    return (CURRENT_BLOCK - HISTORY_BEGIN_BLOCK) // HISTORY_CHUNK_SIZE * HISTORY_CHUNK_SIZE + HISTORY_BEGIN_BLOCK > \
+           last_processed_block
 
 
 def main():
