@@ -198,6 +198,36 @@ def populate_providers(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
     return infos
 
 
+def skip_transfer(info: ExchangeInfo, log: dict, i: int) -> bool:
+    if i == len(info.logs):
+        # last log is legit
+        return False
+
+    next_log = info.logs[i]
+    if next_log['blockNumber'] > log['blockNumber']:
+        # if next log from another block this log is legit
+        return False
+
+    if next_log['topics'][0].hex() in {EVENT_ETH_PURCHASE, EVENT_ADD_LIQUIDITY}:
+        # if next log is ETH_PURCHASE or ADD_LIQUIDITY then this log is its part
+        return True
+
+    if i + 1 == len(info.logs):
+        # if only two logs left, it is legit
+        return False
+
+    next_next_log = info.logs[i + 1]
+    if next_next_log['blockNumber'] > log['blockNumber']:
+        # if next next log is from another block then this log is legit
+        return False
+
+    if next_log['topics'][0].hex() == EVENT_TRANSFER and next_log['address'] == info.exchange_address and \
+            next_next_log['topics'][0].hex() == EVENT_ETH_PURCHASE:
+        return True
+
+    return False
+
+
 @timeit
 def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
     for info in infos:
@@ -215,9 +245,7 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
                     if log['address'] == info.exchange_address:
                         # skip liquidity token transfers
                         continue
-                    elif i < len(info.logs) and info.logs[i]['blockNumber'] == log['blockNumber'] and \
-                            info.logs[i]['topics'][0].hex() in {EVENT_ETH_PURCHASE, EVENT_ADD_LIQUIDITY}:
-                        # skip token transfers that are part of token swaps or liquidity supplies
+                    elif skip_transfer(info, log, i):
                         continue
                     else:
                         event = get_event_data(exchange.events.Transfer._get_event_abi(), log)
@@ -253,10 +281,7 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
                     eth_balance = eth_new_balance
                     token_balance = token_new_balance
 
-            try:
-                info.roi.append(RoiInfo(sqrt(dm_numerator / dm_denominator), eth_balance, token_balance, trade_volume))
-            except ZeroDivisionError:
-                logging.error("{} {} {} {}".format(info.token_symbol, info.exchange_address, i, block_number))
+            info.roi.append(RoiInfo(sqrt(dm_numerator / dm_denominator), eth_balance, token_balance, trade_volume))
 
     logging.info('Loaded info about roi of {} exchanges'.format(len(infos)))
     return infos
