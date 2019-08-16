@@ -228,7 +228,6 @@
 
               switch($("#baselineSelector option:selected").val()) {
                 case 'token':
-                  console.log(cur_loss, dm_roi, cur_price, initial_price);
                   performance = (1 + cur_price / initial_price) * cur_loss * dm_roi / 2;
                   break;
                 case 'eth':
@@ -262,7 +261,6 @@
     $('#baselineSelector').on('select2:select', function (e) {
       switch(e.params.data.id) {
         case 'token':
-          console.log(cur_loss, dm_roi, cur_price, initial_price);
           performance = (1 + cur_price / initial_price) * cur_loss * dm_roi / 2;
           break;
         case 'eth':
