@@ -1,0 +1,39 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    color: #555555;
+}
+
+h1 {
+    font-weight: 300;
+}
+
+.nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    /*background-color: #ccc;*/
+}
+
+.nav ul li {
+    float: left;
+    background-color: #F7F7F7;
+    border-right: 5px solid #fff;
+}
+
+.nav ul li a {
+    display: block;
+    color: black;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+.nav ul li a:hover:not(.active) {
+    background-color: #e6e6e6;
+}
+
+.nav ul li a.active {
+    background-color: #e7ebf4;
+    font-weight: bold;
+}
