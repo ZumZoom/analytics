@@ -14,7 +14,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css">
-  <title>Uniswap ROI By Token</title>
+  <title>Bancor ROI By Token</title>
   <style>
     #config-container {
       display: flex;                  /* establish flex container */
@@ -227,11 +227,10 @@
               }
 
               $('#report').html(
-                'Uniswap returns <b>' +
+                'Bancor returns <b>' +
                 (performance > 1 ? '+' : '') +
                 ((performance - 1) * 100).toFixed(2) + '%</b> from baseline'
               );
-
 
               in_redraw = false;
             }
@@ -260,7 +259,7 @@
       }
 
       $('#report').html(
-        'Uniswap returns <b>' +
+        'Bancor returns <b>' +
         (performance > 1 ? '+' : '') +
         ((performance - 1) * 100).toFixed(2) + '%</b> from baseline'
       );
