@@ -251,8 +251,9 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
                         event = get_event_data(exchange.events.Transfer._get_event_abi(), log)
                         if event['args']['to'] != info.exchange_address:
                             continue
-                        dm_numerator *= token_balance + event['args']['value']
-                        dm_denominator *= token_balance
+                        if token_balance > 0:
+                            dm_numerator *= token_balance + event['args']['value']
+                            dm_denominator *= token_balance
                         token_balance += event['args']['value']
                 elif topic == EVENT_ADD_LIQUIDITY:
                     event = get_event_data(exchange.events.AddLiquidity._get_event_abi(), log)
