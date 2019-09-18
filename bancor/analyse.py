@@ -26,14 +26,12 @@ from utils import timeit
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
-def get_chart_range(start: int = 5000000) -> Iterable[int]:
+def get_chart_range(start: int) -> Iterable[int]:
     return range(start, w3.eth.blockNumber, HISTORY_CHUNK_SIZE)
 
 
 @timeit
-def load_timestamps(start: int = 5000000, stored_timestamps=None) -> Dict[int, int]:
-    if stored_timestamps is None:
-        stored_timestamps = dict()
+def load_timestamps(start: int, stored_timestamps: dict) -> Dict[int, int]:
     for n in get_chart_range(start):
         if n not in stored_timestamps:
             stored_timestamps[n] = w3.eth.getBlock(n)['timestamp']
