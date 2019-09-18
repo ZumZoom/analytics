@@ -1,9 +1,10 @@
 import lru
 
 import requests
+from requests.adapters import HTTPAdapter
 from urllib3 import Retry
 from web3 import HTTPProvider
-from web3.utils.caching import (
+from web3._utils.caching import (
     generate_cache_key,
 )
 
@@ -19,7 +20,7 @@ def _get_session(*args, **kwargs):
     cache_key = generate_cache_key((args, kwargs))
     if cache_key not in _session_cache:
         s = requests.Session()
-        a = requests.adapters.HTTPAdapter(max_retries=Retry(connect=5, read=3), pool_connections=64, pool_maxsize=128)
+        a = HTTPAdapter(max_retries=Retry(connect=5, read=3), pool_connections=64, pool_maxsize=128)
         s.mount('https://', a)
         s.mount('http://', a)
         _session_cache[cache_key] = s

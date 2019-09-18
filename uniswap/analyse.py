@@ -12,7 +12,7 @@ import requests
 from eth_utils import to_checksum_address
 from hexbytes import HexBytes
 from retrying import retry
-from web3.utils.events import get_event_data
+from web3._utils.events import get_event_data
 
 from config import uniswap_factory, web3, web3_infura, pool, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, HARDCODED_INFO, \
     STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, LIQUIDITY_DATA, \
