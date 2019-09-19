@@ -1,10 +1,10 @@
 import json
 from typing import List, Dict
 
-from web3._utils.events import construct_event_topic_set, get_event_data
+from web3._utils.events import get_event_data
 
 from config import w3
-from utils import get_logs, timeit
+from utils import timeit
 
 
 class Contract:
