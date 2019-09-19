@@ -259,7 +259,7 @@ def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
 
     for info in infos:
         for history_point in info.history:
-            data[history_point.block_number][info.token_symbol] = history_point.bnt_balance
+            data[history_point.block_number][info.token_symbol] = history_point.bnt_balance / 10 ** BNT_DECIMALS
 
     with open(LIQUIDITY_DATA, 'w') as out_f:
         out_f.write(','.join(['timestamp'] + [i.token_symbol for i in valuable_infos] + ['Other\n']))
@@ -294,7 +294,7 @@ def save_total_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
 
     for info in infos:
         for history_point in info.history:
-            data[history_point.block_number][info.token_symbol] = history_point.trade_volume
+            data[history_point.block_number][info.token_symbol] = history_point.trade_volume / 10 ** BNT_DECIMALS
 
     with open(TOTAL_VOLUME_DATA, 'w') as out_f:
         out_f.write(','.join(['timestamp'] + [i.token_symbol for i in valuable_infos] + ['Other\n']))
