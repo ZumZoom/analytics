@@ -377,7 +377,8 @@ def main():
         official_infos = get_official_tokens()
         new_infos = [info for info in official_infos if info.token_symbol not in saved_tokens]
         logging.info('Updating {} seen tokens and {} new tokens'.format(len(relay_infos), len(new_infos)))
-        load_logs(0, new_infos)
+        if new_infos:
+            load_logs(0, new_infos)
         if relay_infos:
             load_logs(saved_block + 1, relay_infos)
         relay_infos += new_infos
