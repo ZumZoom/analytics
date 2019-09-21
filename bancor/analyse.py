@@ -235,13 +235,16 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
 @timeit
 def save_tokens(infos: List[RelayInfo]):
     with open(TOKENS_DATA, 'w') as out_f:
-        json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos]},
+        json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos
+                               if info.history]},
                   out_f, indent=1)
 
 
 @timeit
 def save_roi_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
     for info in infos:
+        if not info.history:
+            continue
         with open(ROI_DATA.format(info.token_symbol.lower()), 'w') as out_f:
             out_f.write('timestamp,ROI,Token Price,Trade Volume\n')
             for history_point in info.history:
@@ -276,6 +279,8 @@ def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
 @timeit
 def save_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
     for info in infos:
+        if not info.history:
+            continue
         with open(VOLUME_DATA.format(info.token_symbol.lower()), 'w') as out_f:
             out_f.write(','.join(['timestamp'] + ['\u200b{}'.format(t) for t in info.valuable_traders] +
                                  ['Other']) + '\n')
@@ -311,6 +316,8 @@ def save_total_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
 @timeit
 def save_providers_data(infos: List[RelayInfo]):
     for info in infos:
+        if not info.history:
+            continue
         with open(PROVIDERS_DATA.format(info.token_symbol.lower()), 'w') as out_f:
             out_f.write('provider,bnt\n')
             total_supply = sum(info.providers.values())
