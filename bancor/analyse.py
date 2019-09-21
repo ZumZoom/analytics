@@ -390,7 +390,7 @@ def main():
     else:
         logging.info('Loaded data is up to date')
 
-    min_block = min(relay_info.history[0].block_number for relay_info in relay_infos)
+    min_block = min(relay_info.history[0].block_number for relay_info in relay_infos if relay_info.history)
     timestamps = unpickle_timestamps()
     timestamps = load_timestamps(min_block, timestamps)
     pickle_timestamps(timestamps)
