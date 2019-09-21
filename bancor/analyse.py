@@ -156,6 +156,9 @@ def populate_providers(infos: List[RelayInfo]) -> List[RelayInfo]:
 @timeit
 def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
     for info in infos:
+        if len(info.converter_logs) == 0:
+            logging.warning('No logs for converter {}. Skipping...'.format(info.token_symbol))
+            continue
         converter = BancorConverter('abi/BancorConverter.abi', info.converter_address)
         info.history = list()
         info.volume = list()
@@ -368,11 +371,15 @@ def main():
     saved_block = unpickle_last_block()
     relay_infos = unpickle_infos()
     if update_required(saved_block):
+        logging.info('Last seen block: {}, current block: {}, loading data for {} blocks...'.format(
+            saved_block, CURRENT_BLOCK, CURRENT_BLOCK - saved_block))
         saved_tokens = {info.token_symbol for info in relay_infos}
         official_infos = get_official_tokens()
         new_infos = [info for info in official_infos if info.token_symbol not in saved_tokens]
+        logging.info('Updating {} seen tokens and {} new tokens'.format(len(relay_infos), len(new_infos)))
         load_logs(0, new_infos)
-        load_logs(saved_block + 1, relay_infos)
+        if relay_infos:
+            load_logs(saved_block + 1, relay_infos)
         relay_infos += new_infos
         populate_history(relay_infos)
         populate_providers(relay_infos)
