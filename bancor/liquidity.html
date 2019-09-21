@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-34871125-3"></script>
+  <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-34871125-3');
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Bancor Liquidity</title>
+
+</head>
+<body>
+<header>
+  <div class="nav">
+    <ul>
+      <li><a class="active" href="#">Liquidity</a></li>
+      <li><a href="./providers.html">Liquidity Providers</a></li>
+      <li><a href="./roi.html">ROI</a></li>
+      <li><a href="./traders.html">Traders</a></li>
+      <li><a href="./total_volume.html">Trade Volume</a></li>
+    </ul>
+  </div>
+</header>
+<noscript>
+  You need to enable JavaScript to run this app.
+</noscript>
+<div id="root">
+  <h1>Bancor Liquidity</h1>
+  <div id="container" style="width:100%; height:800px;"></div>
+</div>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://code.highcharts.com/modules/data.js"></script>
+  <script>
+    var csv_url = window.location.href
+    csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/liquidity.csv'
+    Highcharts.stockChart('container', {
+    chart: {
+      type: 'area',
+      backgroundColor: null,
+    },
+    rangeSelector: {
+      selected: 2,
+      buttons: [{
+        type: 'week',
+        count: 1,
+        text: '1w'
+      }, {
+        type: 'month',
+        count: 1,
+        text: '1m'
+      }, {
+        type: 'month',
+        count: 3,
+        text: '3m'
+      }, {
+        type: 'all',
+        text: 'All'
+      }],
+      inputEnabled: false
+    },
+    title: {
+      text: ''
+    },
+    plotOptions: {
+      area: {
+        stacking: 'normal'
+      }
+    },
+    legend: {
+      enabled: true,
+      align: 'center'
+    },
+    credits: {
+      enabled: false
+    },
+    yAxis: {
+      opposite: false,
+      reversedStacks: false,
+      labels: {
+        format: '{value} BNT'
+      }
+    },
+    tooltip: {
+     shared: true,
+     split: false,
+     pointFormat: '<b>{series.name}:</b> {point.y} ({point.percentage:.0f}%)<br>',
+     footerFormat: '<b>Total: {point.total:,.0f} </b>'
+    },
+    scrollbar: {
+      barBackgroundColor: '#dee3eb',
+      trackBackgroundColor: '#f2f4f7',
+      buttonBackgroundColor: '#ffffff',
+      buttonArrowColor: '#dee3eb',
+      barBorderColor: '#dee3eb',
+      buttonBorderColor: '#dee3eb',
+      rifleColor: '#ffffff'
+    },
+    data: {
+      csvURL: csv_url
+    }
+  });
+</script>
+</body>
+</html>

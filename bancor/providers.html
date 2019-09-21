@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-34871125-3"></script>
+  <script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-34871125-3');
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+  <title>Bancor Liquidity Providers By Token</title>
+
+</head>
+<body>
+  <header>
+    <div class="nav">
+      <ul>
+        <li><a href="./liquidity.html">Liquidity</a></li>
+        <li><a class="active" href="#">Liquidity Providers</a></li>
+        <li><a href="./roi.html">ROI</a></li>
+        <li><a href="./traders.html">Traders</a></li>
+        <li><a href="./total_volume.html">Trade Volume</a></li>
+      </ul>
+    </div>
+  </header>
+  <noscript>
+    You need to enable JavaScript to run this app.
+  </noscript>
+  <div id="root">
+    <h1>Bancor Liquidity Providers By Token</h1>
+    <select id="tokenSelector" class="js-example-basic-single" style="width: 300px; display: inline-block">
+      <option value="daibnt">DAIBNT</option>
+    </select>
+    <div id="container" style="width:100%; height:800px;"></div>
+  </div>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://code.highcharts.com/modules/data.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+  <script>
+    var csv_url = undefined;
+
+    $(document).ready(function() {
+      $('#tokenSelector').select2({
+        ajax: {
+          url: './data/tokens.json',
+          dataType: 'json',
+          cache: true,
+          processResults: function (data, params) {
+            params.term = params.term ? params.term.toLowerCase() : '';
+            var newData = { results: data.results.filter(function (el) { return el.id.startsWith(params.term); }) };
+            return newData;
+          }
+        }
+      });
+      csv_url = window.location.href;
+      csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/providers/' + $('#tokenSelector').select2('data')[0].id + '.csv';
+      createChart();
+    });
+
+    function createChart() {
+      Highcharts.chart('container', {
+        chart: {
+          type: 'pie',
+          events: {
+            redraw: function(event) {
+              this.renderer.text('<b>Total:</b> ' + this.series[0].total.toFixed(2) + ' BNT', 0, 40).css({ fontSize: '16px' }).add()
+            }
+          }
+        },
+        title: {
+          text: '',
+          useHTML: true
+        },
+        credits: {
+          enabled: false
+        },
+        tooltip: {
+          pointFormat: '<b>{point.y} BNT ({point.percentage:.0f}%)</b>',
+        },
+        plotOptions: {
+          pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+              enabled: true,
+              format: '<b>{point.name}</b>: {point.y} BNT ({point.percentage:.0f}%)',
+              style: {
+                color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+              },
+            }
+          }
+        },
+        data: {
+          csvURL: csv_url
+        }
+      });
+    }
+
+    $('#tokenSelector').on('select2:select', function (e) {
+      csv_url = window.location.href;
+      csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/providers/' + e.params.data.id + '.csv';
+      createChart()
+    });
+  </script>
+</body>
+</html>
