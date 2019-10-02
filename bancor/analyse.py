@@ -17,7 +17,7 @@ from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS,
     EVENT_PRICE_DATA_UPDATE, \
     ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, TOTAL_VOLUME_DATA, \
     TOKENS_DATA, VOLUME_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
-    LAST_BLOCK_DUMP
+    LAST_BLOCK_DUMP, BROKEN_TOKENS
 from contracts import BancorConverter, SmartToken, BancorConverterRegistry
 from history import History
 from relay_info import RelayInfo
@@ -297,8 +297,8 @@ def save_roi_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
 
 @timeit
 def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
-    valuable_infos = infos
-    other_infos = []
+    valuable_infos = [info for info in infos if is_valuable(info)]
+    other_infos = [info for info in infos if not is_valuable(info)]
 
     data = defaultdict(dict)
 
@@ -418,6 +418,8 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
     new_infos = []
     data = get_official_tokens() + get_registry_tokens() + get_cotrader_tokens(True) + get_cotrader_tokens(False)
     for info in data:
+        if info.token_symbol in BROKEN_TOKENS:
+            continue
         known_info = info_by_token.get(info.token_address)
         if known_info is None:
             new_infos.append(info)
@@ -432,7 +434,7 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
 
 
 def is_valuable(info: RelayInfo) -> bool:
-    return info.bnt_balance >= 1000 * 10 ** BNT_DECIMALS
+    return info.bnt_balance >= 10000 * 10 ** BNT_DECIMALS
 
 
 def main():
@@ -465,7 +467,7 @@ def main():
 
     save_tokens(valuable_infos)
     save_roi_data(valuable_infos, timestamps)
-    save_liquidity_data(valuable_infos, timestamps)
+    save_liquidity_data(relay_infos, timestamps)
     save_volume_data(valuable_infos, timestamps)
     save_total_volume_data(valuable_infos, timestamps)
     save_providers_data(valuable_infos)
