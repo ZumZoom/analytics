@@ -425,6 +425,10 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
     return new_infos
 
 
+def is_valuable(info: RelayInfo) -> bool:
+    return info.bnt_balance >= 1000 * 10 ** BNT_DECIMALS
+
+
 def main():
     saved_block = unpickle_last_block()
     relay_infos = unpickle_infos()
@@ -451,12 +455,14 @@ def main():
     timestamps = load_timestamps(min_block, timestamps)
     pickle_timestamps(timestamps)
 
-    save_tokens(relay_infos)
-    save_roi_data(relay_infos, timestamps)
-    save_liquidity_data(relay_infos, timestamps)
-    save_volume_data(relay_infos, timestamps)
-    save_total_volume_data(relay_infos, timestamps)
-    save_providers_data(relay_infos)
+    valuable_infos = [info for info in relay_infos if is_valuable(info)]
+
+    save_tokens(valuable_infos)
+    save_roi_data(valuable_infos, timestamps)
+    save_liquidity_data(valuable_infos, timestamps)
+    save_volume_data(valuable_infos, timestamps)
+    save_total_volume_data(valuable_infos, timestamps)
+    save_providers_data(valuable_infos)
 
 
 if __name__ == '__main__':
