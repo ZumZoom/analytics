@@ -4,7 +4,6 @@ from typing import List, Dict
 from web3._utils.events import get_event_data
 
 from config import w3
-from utils import timeit
 
 
 class Contract:
@@ -13,7 +12,7 @@ class Contract:
             self.contract = w3.eth.contract(abi=json.load(fh), address=address)
 
     def parse_event(self, event_type: str, event: dict) -> dict:
-        return get_event_data(self.contract.events[event_type]._get_event_abi(), event)
+        return get_event_data(w3.codec, self.contract.events[event_type]._get_event_abi(), event)
 
 
 class SmartToken(Contract):
