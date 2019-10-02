@@ -156,7 +156,8 @@ def load_logs(start_block: int, infos: List[ExchangeInfo]) -> List[ExchangeInfo]
     exchange_addresses = [info.exchange_address for info in infos]
     token_addresses = [info.token_address for info in infos]
     exchange_logs = get_logs(exchange_addresses, [ALL_EVENTS], start_block)
-    token_logs = get_logs(token_addresses, [[EVENT_TRANSFER], [], exchange_addresses], start_block)
+    exchange_addresses_topics = ['0x000000000000000000000000' + addr[2:] for addr in exchange_addresses]
+    token_logs = get_logs(token_addresses, [[EVENT_TRANSFER], [], exchange_addresses_topics], start_block)
     for info in infos:
         new_exchange_logs = exchange_logs.get(info.exchange_address)
         if new_exchange_logs:
