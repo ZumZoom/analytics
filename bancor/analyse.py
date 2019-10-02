@@ -18,7 +18,7 @@ from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS,
     ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, TOTAL_VOLUME_DATA, \
     TOKENS_DATA, VOLUME_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
     LAST_BLOCK_DUMP
-from contracts import BancorConverter, SmartToken
+from contracts import BancorConverter, SmartToken, BancorConverterRegistry
 from history import History
 from relay_info import RelayInfo
 from utils import timeit
@@ -39,7 +39,7 @@ def load_timestamps(start: int, stored_timestamps: dict) -> Dict[int, int]:
 
 
 @timeit
-def get_official_tokens():
+def get_official_tokens() -> List[RelayInfo]:
     url = 'https://api.bancor.network/0.1/currencies'
     params = {
         'name': 'BNT',
@@ -62,6 +62,46 @@ def get_official_tokens():
             if t['code'] != 'BNT'
         ])
     logging.info('Got info about {} official tokens'.format(len(tokens_data)))
+    return tokens_data
+
+
+@timeit
+def get_registry_tokens() -> List[RelayInfo]:
+    tokens_data = list()
+    registry = BancorConverterRegistry(ADDRESSES['bancor_converter_registry'])
+    converter_addresses = registry.latest_converter_addresses()
+    for token_addr, converter_addr in converter_addresses.items():
+        converter = BancorConverter(converter_addr)
+        relay_token_addr = converter.contract.functions.token().call()
+        relay_token = SmartToken(relay_token_addr)
+        decimals = relay_token.contract.functions.decimals().call()
+        symbol = relay_token.contract.functions.symbol().call()
+        if symbol != 'BNT':
+            tokens_data.append(RelayInfo(
+                relay_token_addr,
+                symbol,
+                decimals,
+                converter_addr
+            ))
+    logging.info('Got info about {} tokens from registry'.format(len(tokens_data)))
+    return tokens_data
+
+
+@timeit
+def get_cotrader_tokens(official: bool = True) -> List[RelayInfo]:
+    list_name = 'official' if official else 'unofficial'
+    url = 'https://api-bancor.cotrader.com/' + list_name
+    tokens_data = list()
+    for data in requests.get(url).json()['result']:
+        if data['symbol'] != 'BNT':
+            tokens_data.append(RelayInfo(
+                data['smartTokenAddress'],
+                data['smartTokenSymbol'],
+                0,
+                data['converterAddress']
+            ))
+
+    logging.info('Got info about {} tokens from cotrader {} list'.format(len(tokens_data), list_name))
     return tokens_data
 
 
@@ -138,7 +178,7 @@ def invariant(bnt_balance, token_balance, token_supply):
 @timeit
 def populate_providers(infos: List[RelayInfo]) -> List[RelayInfo]:
     for info in infos:
-        token = SmartToken('abi/SmartToken.abi', info.token_address)
+        token = SmartToken(info.token_address)
         info.providers = defaultdict(int)
         for log in info.relay_logs:
             event = token.parse_event('Transfer', log)
@@ -159,7 +199,7 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
         if len(info.converter_logs) == 0:
             logging.warning('No logs for converter {}. Skipping...'.format(info.token_symbol))
             continue
-        converter = BancorConverter('abi/BancorConverter.abi', info.converter_address)
+        converter = BancorConverter(info.converter_address)
         info.history = list()
         info.volume = list()
         i = 0
@@ -374,15 +414,24 @@ def update_required(last_processed_block: int) -> bool:
     return CURRENT_BLOCK // HISTORY_CHUNK_SIZE * HISTORY_CHUNK_SIZE > last_processed_block
 
 
+def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
+    saved_tokens = {info.token_address for info in known_infos}
+    new_infos = []
+    data = get_official_tokens() + get_registry_tokens() + get_cotrader_tokens(True) + get_cotrader_tokens(False)
+    for info in data:
+        if info.token_address not in saved_tokens:
+            new_infos.append(info)
+            saved_tokens.add(info.token_address)
+    return new_infos
+
+
 def main():
     saved_block = unpickle_last_block()
     relay_infos = unpickle_infos()
     if update_required(saved_block):
         logging.info('Last seen block: {}, current block: {}, loading data for {} blocks...'.format(
             saved_block, CURRENT_BLOCK, CURRENT_BLOCK - saved_block))
-        saved_tokens = {info.token_symbol for info in relay_infos}
-        official_infos = get_official_tokens()
-        new_infos = [info for info in official_infos if info.token_symbol not in saved_tokens]
+        new_infos = load_new_infos(relay_infos)
         logging.info('Updating {} seen tokens and {} new tokens'.format(len(relay_infos), len(new_infos)))
         if new_infos:
             load_logs(0, new_infos)

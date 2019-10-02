@@ -17,10 +17,14 @@ class Contract:
 
 
 class SmartToken(Contract):
-    pass
+    def __init__(self, address):
+        super().__init__('abi/SmartToken.abi', address)
 
 
 class BancorConverterRegistry(Contract):
+    def __init__(self, address):
+        super().__init__('abi/BancorConverterRegistry.abi', address)
+
     def token_count(self) -> int:
         return self.contract.functions.tokenCount().call()
 
@@ -36,20 +40,21 @@ class BancorConverterRegistry(Contract):
     def converter_address(self, token: str, index: int) -> str:
         return self.contract.functions.converterAddress(token, index).call()
 
-    @timeit
     def all_converter_addresses(self, tokens: List[str] = None) -> Dict[str, List[str]]:
         return {
             token: [self.converter_address(token, i) for i in range(self.converter_count(token))]
             for token in (tokens if tokens else self.all_tokens())
         }
 
-    @timeit
     def latest_converter_addresses(self, tokens: List[str] = None) -> Dict[str, str]:
-        return {
-            token: self.converter_address(token, self.converter_count(token) - 1)
-            for token in (tokens if tokens else self.all_tokens())
-        }
+        ret = dict()
+        for token in (tokens if tokens else self.all_tokens()):
+            converter_count = self.converter_count(token)
+            if converter_count:
+                ret[token] = self.converter_address(token, converter_count - 1)
+        return ret
 
 
 class BancorConverter(Contract):
-    pass
+    def __init__(self, address):
+        super().__init__('abi/BancorConverter.abi', address)
