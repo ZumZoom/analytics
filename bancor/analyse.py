@@ -13,11 +13,10 @@ from eth_utils import to_checksum_address
 from hexbytes import HexBytes
 from retrying import retry
 
-from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
-    EVENT_PRICE_DATA_UPDATE, \
-    ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, TOTAL_VOLUME_DATA, \
-    TOKENS_DATA, VOLUME_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
-    LAST_BLOCK_DUMP, BROKEN_TOKENS
+from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
+    EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
+    TOTAL_VOLUME_DATA, TOKENS_DATA, VOLUME_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, \
+    INFOS_DUMP, LAST_BLOCK_DUMP, BROKEN_TOKENS
 from contracts import BancorConverter, SmartToken, BancorConverterRegistry
 from history import History
 from relay_info import RelayInfo
@@ -117,7 +116,7 @@ def get_logs(addresses: List[str], topics: List, start_block: int) -> Dict[str, 
         )
         return postprocess_graphql_response(resp.json()['data']['logs'])
 
-    log_chunks = pool.map(get_chunk, range(start_block, CURRENT_BLOCK + 1, LOGS_BLOCKS_CHUNK))
+    log_chunks = [get_chunk(b) for b in range(start_block, CURRENT_BLOCK + 1, LOGS_BLOCKS_CHUNK)]
     logs = [log for chunk in log_chunks for log in chunk]
     logs.sort(key=lambda l: (l['address'], l['blockNumber'], l['logIndex']))
     return dict((k, list(g)) for k, g in groupby(logs, itemgetter('address')))

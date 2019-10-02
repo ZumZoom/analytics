@@ -1,5 +1,4 @@
 import os
-from multiprocessing.pool import ThreadPool
 
 from web3.auto.ipc import w3
 
@@ -16,7 +15,7 @@ BNT_DECIMALS = 18
 
 CURRENT_BLOCK = w3.eth.blockNumber - REORG_PROTECTION_BLOCKS_COUNT
 
-LOGS_BLOCKS_CHUNK = 2000
+LOGS_BLOCKS_CHUNK = 4000
 
 HISTORY_CHUNK_SIZE = 5000
 
@@ -33,10 +32,6 @@ VOLUME_DATA = os.path.join(DIST_DIR, 'data/volume/{}.csv')
 TOTAL_VOLUME_DATA = os.path.join(DIST_DIR, 'data/total_volume.csv')
 
 TOKENS_DATA = os.path.join(DIST_DIR, 'data/tokens.json')
-
-THREADS = 8
-
-pool = ThreadPool(THREADS)
 
 EVENT_PRICE_DATA_UPDATE = '0x8a6a7f53b3c8fa1dc4b83e3f1be668c1b251ff8d44cdcb83eb3acec3fec6a788'
 
