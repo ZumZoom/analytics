@@ -187,7 +187,7 @@ def populate_providers(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
         for log in info.logs:
             if log['topics'][0].hex() != EVENT_TRANSFER or log['address'] != info.exchange_address:
                 continue
-            event = get_event_data(exchange.events.Transfer._get_event_abi(), log)
+            event = get_event_data(web3.codec, exchange.events.Transfer._get_event_abi(), log)
             if event['args']['from'] == '0x0000000000000000000000000000000000000000':
                 info.providers[event['args']['to']] += event['args']['value']
             elif event['args']['to'] == '0x0000000000000000000000000000000000000000':
@@ -249,7 +249,7 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
                     elif skip_transfer(info, log, i):
                         continue
                     else:
-                        event = get_event_data(exchange.events.Transfer._get_event_abi(), log)
+                        event = get_event_data(web3.codec, exchange.events.Transfer._get_event_abi(), log)
                         if event['args']['to'] != info.exchange_address:
                             continue
                         if token_balance > 0:
@@ -257,15 +257,15 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
                             dm_denominator *= token_balance
                         token_balance += event['args']['value']
                 elif topic == EVENT_ADD_LIQUIDITY:
-                    event = get_event_data(exchange.events.AddLiquidity._get_event_abi(), log)
+                    event = get_event_data(web3.codec, exchange.events.AddLiquidity._get_event_abi(), log)
                     eth_balance += event['args']['eth_amount']
                     token_balance += event['args']['token_amount']
                 elif topic == EVENT_REMOVE_LIQUIDITY:
-                    event = get_event_data(exchange.events.RemoveLiquidity._get_event_abi(), log)
+                    event = get_event_data(web3.codec, exchange.events.RemoveLiquidity._get_event_abi(), log)
                     eth_balance -= event['args']['eth_amount']
                     token_balance -= event['args']['token_amount']
                 elif topic == EVENT_ETH_PURCHASE:
-                    event = get_event_data(exchange.events.EthPurchase._get_event_abi(), log)
+                    event = get_event_data(web3.codec, exchange.events.EthPurchase._get_event_abi(), log)
                     eth_new_balance = eth_balance - event['args']['eth_bought']
                     token_new_balance = token_balance + event['args']['tokens_sold']
                     dm_numerator *= eth_new_balance * token_new_balance
@@ -274,7 +274,7 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
                     eth_balance = eth_new_balance
                     token_balance = token_new_balance
                 else:
-                    event = get_event_data(exchange.events.TokenPurchase._get_event_abi(), log)
+                    event = get_event_data(web3.codec, exchange.events.TokenPurchase._get_event_abi(), log)
                     eth_new_balance = eth_balance + event['args']['eth_sold']
                     token_new_balance = token_balance - event['args']['tokens_bought']
                     dm_numerator *= eth_new_balance * token_new_balance
@@ -304,11 +304,11 @@ def populate_volume(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
                 i += 1
                 topic = log['topics'][0].hex()
                 if topic == EVENT_ETH_PURCHASE:
-                    event = get_event_data(exchange.events.EthPurchase._get_event_abi(), log)
+                    event = get_event_data(web3.codec, exchange.events.EthPurchase._get_event_abi(), log)
                     trade_volume[event['args']['buyer']] += event['args']['eth_bought'] / 0.997
                     total_trade_volume[event['args']['buyer']] += event['args']['eth_bought'] / 0.997
                 elif topic == EVENT_TOKEN_PURCHASE:
-                    event = get_event_data(exchange.events.TokenPurchase._get_event_abi(), log)
+                    event = get_event_data(web3.codec, exchange.events.TokenPurchase._get_event_abi(), log)
                     trade_volume[event['args']['buyer']] += event['args']['eth_sold']
                     total_trade_volume[event['args']['buyer']] += event['args']['eth_sold']
 
