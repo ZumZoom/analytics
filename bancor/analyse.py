@@ -172,7 +172,7 @@ def load_logs(start_block: int, infos: List[RelayInfo]) -> List[RelayInfo]:
 
 
 def invariant(bnt_balance, token_balance, token_supply):
-    return sqrt(bnt_balance * token_balance) / token_supply
+    return sqrt(bnt_balance * token_balance) / token_supply if token_supply else 1
 
 
 @timeit
