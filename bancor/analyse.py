@@ -74,14 +74,13 @@ def get_registry_tokens() -> List[RelayInfo]:
         converter = BancorConverter(converter_addr)
         relay_token_addr = converter.contract.functions.token().call()
         relay_token = SmartToken(relay_token_addr)
-        decimals = relay_token.contract.functions.decimals().call()
         symbol = relay_token.contract.functions.symbol().call()
         if symbol != 'BNT':
             tokens_data.append(RelayInfo(
                 relay_token_addr,
                 symbol,
-                decimals,
-                converter_addr
+                0,
+                relay_token.contract.functions.owner().call()
             ))
     logging.info('Got info about {} tokens from registry'.format(len(tokens_data)))
     return tokens_data
@@ -415,13 +414,20 @@ def update_required(last_processed_block: int) -> bool:
 
 
 def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
-    saved_tokens = {info.token_address for info in known_infos}
+    info_by_token = {info.token_address: info for info in known_infos}
     new_infos = []
     data = get_official_tokens() + get_registry_tokens() + get_cotrader_tokens(True) + get_cotrader_tokens(False)
     for info in data:
-        if info.token_address not in saved_tokens:
+        known_info = info_by_token.get(info.token_address)
+        if known_info is None:
             new_infos.append(info)
-            saved_tokens.add(info.token_address)
+            info_by_token[info.token_address] = info
+        else:
+            if known_info.converter_address != info.converter_address:
+                new_infos.append(info)
+                info_by_token[info.token_address] = info
+                known_infos.remove(known_info)
+
     return new_infos
 
 
