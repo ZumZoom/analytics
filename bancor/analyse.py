@@ -454,6 +454,10 @@ def save_providers_to_mongo(infos: List[RelayInfo]):
             continue
 
         total_supply = sum(info.providers.values())
+
+        if total_supply == 0:
+            continue
+
         for p, v in sorted(info.providers.items(), key=lambda x: x[1], reverse=True):
             s = v / total_supply
             entries.append({
