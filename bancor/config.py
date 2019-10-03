@@ -1,6 +1,7 @@
 import os
 from multiprocessing.pool import ThreadPool
 
+from pymongo import MongoClient
 from web3.auto.ipc import w3
 
 ADDRESSES = {
@@ -37,6 +38,8 @@ TOKENS_DATA = os.path.join(DIST_DIR, 'data/tokens.json')
 THREADS = 8
 
 pool = ThreadPool(THREADS)
+
+mongo = MongoClient(os.environ['MONGODB_URI'])
 
 EVENT_PRICE_DATA_UPDATE = '0x8a6a7f53b3c8fa1dc4b83e3f1be668c1b251ff8d44cdcb83eb3acec3fec6a788'
 
