@@ -17,7 +17,7 @@ from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS,
     EVENT_PRICE_DATA_UPDATE, \
     ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, TOTAL_VOLUME_DATA, \
     TOKENS_DATA, VOLUME_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
-    LAST_BLOCK_DUMP, BROKEN_TOKENS, mongo
+    LAST_BLOCK_DUMP, BROKEN_TOKENS, mongo, MONGO_DATABASE
 from contracts import BancorConverter, SmartToken, BancorConverterRegistry
 from history import History
 from relay_info import RelayInfo
@@ -438,14 +438,14 @@ def is_valuable(info: RelayInfo) -> bool:
 
 
 def save_tokens_to_mongo(infos: List[RelayInfo]):
-    tokens_collection = mongo.bancor.tokens
+    tokens_collection = mongo[MONGO_DATABASE].tokens
     tokens_collection.drop()
     tokens = [{'tokens': info.token_symbol.lower() for info in infos}]
     tokens_collection.insert_many(tokens)
 
 
 def save_providers_to_mongo(infos: List[RelayInfo]):
-    providers_collection = mongo.bancor.providers
+    providers_collection = mongo[MONGO_DATABASE].providers
     providers_collection.drop()
     entries = []
 
@@ -465,7 +465,7 @@ def save_providers_to_mongo(infos: List[RelayInfo]):
 
 
 def save_history_to_mongo(infos: List[RelayInfo], timestamps: Dict[int, int]):
-    history_collection = mongo.bancor.history
+    history_collection = mongo[MONGO_DATABASE].history
     history_collection.drop()
     entries = []
 

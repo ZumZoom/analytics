@@ -39,7 +39,11 @@ THREADS = 2
 
 pool = ThreadPool(THREADS)
 
-mongo = MongoClient(os.environ['MONGODB_URI'])
+MONGO_URI = os.environ['MONGO_URI']
+
+MONGO_DATABASE = MONGO_URI.split('/')[-1]
+
+mongo = MongoClient(MONGO_URI, retryWrites=False)
 
 EVENT_PRICE_DATA_UPDATE = '0x8a6a7f53b3c8fa1dc4b83e3f1be668c1b251ff8d44cdcb83eb3acec3fec6a788'
 
