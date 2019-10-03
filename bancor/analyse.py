@@ -437,10 +437,14 @@ def is_valuable(info: RelayInfo) -> bool:
     return info.bnt_balance >= 10000 * 10 ** BNT_DECIMALS
 
 
+def is_empty(info: RelayInfo) -> bool:
+    return info.bnt_balance == 0
+
+
 def save_tokens_to_mongo(infos: List[RelayInfo]):
     tokens_collection = mongo[MONGO_DATABASE].tokens
     tokens_collection.drop()
-    tokens = [{'tokens': info.token_symbol.lower() for info in infos}]
+    tokens = [{'token': info.token_symbol.lower()} for info in infos]
     tokens_collection.insert_many(tokens)
 
 
@@ -527,9 +531,11 @@ def main():
     save_total_volume_data(valuable_infos, timestamps)
     save_providers_data(valuable_infos)
 
-    save_tokens_to_mongo(relay_infos)
-    save_history_to_mongo(relay_infos, timestamps)
-    save_providers_to_mongo(relay_infos)
+    not_empty_infos = [info for info in relay_infos if not is_empty(info)]
+
+    save_tokens_to_mongo(not_empty_infos)
+    save_history_to_mongo(not_empty_infos, timestamps)
+    save_providers_to_mongo(not_empty_infos)
 
 
 if __name__ == '__main__':
