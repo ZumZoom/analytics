@@ -461,13 +461,22 @@ def save_providers_to_mongo(infos: List[RelayInfo]):
 
         if total_supply == 0:
             continue
+        remaining_supply = total_supply
 
         for p, v in sorted(info.providers.items(), key=lambda x: x[1], reverse=True):
             s = v / total_supply
+            if s >= 0.01:
+                entries.append({
+                    'token': info.token_symbol.lower(),
+                    'provider': p,
+                    'bnt': info.bnt_balance * s / 10 ** BNT_DECIMALS
+                })
+                remaining_supply -= v
+        if remaining_supply > 0:
             entries.append({
                 'token': info.token_symbol.lower(),
-                'provider': p,
-                'bnt': info.bnt_balance * s / 10 ** BNT_DECIMALS
+                'provider': 'Other',
+                'bnt': info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS
             })
     providers_collection.insert_many(entries)
 
