@@ -17,7 +17,7 @@ BNT_DECIMALS = 18
 
 CURRENT_BLOCK = w3.eth.blockNumber - REORG_PROTECTION_BLOCKS_COUNT
 
-LOGS_BLOCKS_CHUNK = 1000
+LOGS_BLOCKS_CHUNK = 2000
 
 HISTORY_CHUNK_SIZE = 5000
 
@@ -35,7 +35,7 @@ TOTAL_VOLUME_DATA = os.path.join(DIST_DIR, 'data/total_volume.csv')
 
 TOKENS_DATA = os.path.join(DIST_DIR, 'data/tokens.json')
 
-THREADS = 8
+THREADS = 2
 
 pool = ThreadPool(THREADS)
 
