@@ -365,9 +365,11 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
     new_infos = []
     data = get_official_tokens() + get_registry_tokens() + get_cotrader_tokens(True) + get_cotrader_tokens(False)
     for info in data:
-        if info.token_symbol in BROKEN_TOKENS:
-            continue
         known_info = info_by_token.get(info.token_address)
+        if info.token_symbol in BROKEN_TOKENS:
+            if known_info is not None:
+                known_infos.remove(known_info)
+            continue
         if known_info is None:
             new_infos.append(info)
             info_by_token[info.token_address] = info
