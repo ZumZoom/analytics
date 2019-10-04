@@ -27,7 +27,7 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
 def get_chart_range(start: int) -> Iterable[int]:
-    return range(start, w3.eth.blockNumber, HISTORY_CHUNK_SIZE)
+    return range(start, CURRENT_BLOCK, HISTORY_CHUNK_SIZE)
 
 
 @timeit
