@@ -29,8 +29,6 @@ PROVIDERS_DATA = os.path.join(DIST_DIR, 'data/providers/{}.csv')
 
 ROI_DATA = os.path.join(DIST_DIR, 'data/roi/{}.csv')
 
-VOLUME_DATA = os.path.join(DIST_DIR, 'data/volume/{}.csv')
-
 TOTAL_VOLUME_DATA = os.path.join(DIST_DIR, 'data/total_volume.csv')
 
 TOKENS_DATA = os.path.join(DIST_DIR, 'data/tokens.json')

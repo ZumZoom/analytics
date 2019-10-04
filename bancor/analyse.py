@@ -16,7 +16,7 @@ from retrying import retry
 from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
     EVENT_PRICE_DATA_UPDATE, \
     ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, TOTAL_VOLUME_DATA, \
-    TOKENS_DATA, VOLUME_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
+    TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
     LAST_BLOCK_DUMP, BROKEN_TOKENS, mongo, MONGO_DATABASE
 from contracts import BancorConverter, SmartToken, BancorConverterRegistry
 from history import History
@@ -55,7 +55,6 @@ def get_official_tokens() -> List[RelayInfo]:
             RelayInfo(
                 to_checksum_address(t['details'][0]['blockchainId']),
                 t['details'][0]['symbol'],
-                t['details'][0]['decimals'],
                 to_checksum_address(t['details'][0]['converter']['blockchainId'])
             )
             for t in requests.get(url, params).json()['data']['currencies']['page']
@@ -79,7 +78,6 @@ def get_registry_tokens() -> List[RelayInfo]:
             tokens_data.append(RelayInfo(
                 relay_token_addr,
                 symbol,
-                0,
                 relay_token.contract.functions.owner().call()
             ))
     logging.info('Got info about {} tokens from registry'.format(len(tokens_data)))
@@ -96,7 +94,6 @@ def get_cotrader_tokens(official: bool = True) -> List[RelayInfo]:
             tokens_data.append(RelayInfo(
                 data['smartTokenAddress'],
                 data['smartTokenSymbol'],
-                0,
                 data['converterAddress']
             ))
 
@@ -134,21 +131,6 @@ def postprocess_graphql_response(logs: List[dict]) -> List[dict]:
         'address': to_checksum_address(log['account']['address']),
         'blockHash': None
     } for log in logs]
-
-
-# def get_logs(addresses: List[str], topics: List, start_block: int) -> Dict[str, List]:
-#     @retry(stop_max_attempt_number=3, wait_fixed=1)
-#     def get_chunk(start):
-#         return w3.eth.getLogs({
-#             'fromBlock': start,
-#             'toBlock': min(start + LOGS_BLOCKS_CHUNK - 1, CURRENT_BLOCK),
-#             'address': addresses,
-#             'topics': topics})
-#
-#     log_chunks = pool.map(get_chunk, range(start_block, CURRENT_BLOCK + 1, LOGS_BLOCKS_CHUNK))
-#     logs = [log for chunk in log_chunks for log in chunk]
-#     logs.sort(key=lambda l: (l['address'], l['blockNumber'], l['transactionIndex'], l['logIndex']))
-#     return dict((k, list(g)) for k, g in groupby(logs, itemgetter('address')))
 
 
 @timeit
@@ -204,10 +186,9 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
         i = 0
         prev_bnt_balance, prev_token_balance, prev_token_supply = None, None, None
         bnt_balance, token_balance, token_supply = None, None, None
-        total_volume_by_trader = defaultdict(int)
 
         for block_number in get_chart_range(info.converter_logs[0]['blockNumber'] // 5000 * 5000):
-            volume_by_trader = defaultdict(int)
+            volume = 0
             while i < len(info.converter_logs) and info.converter_logs[i]['blockNumber'] <= block_number:
                 log = info.converter_logs[i]
                 topic = log['topics'][0].hex()
@@ -215,13 +196,9 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
                 if topic == EVENT_CONVERSION:
                     event = converter.parse_event('Conversion', log)
                     if event['args']['_fromToken'] == ADDRESSES['bnt']:
-                        volume_by_trader[event['args']['_trader']] += event['args']['_amount']
-                        total_volume_by_trader[event['args']['_trader']] += event['args']['_amount']
+                        volume += event['args']['_amount']
                     else:
-                        volume_by_trader[event['args']['_trader']] += event['args']['_return'] + \
-                                                                  event['args']['_conversionFee']
-                        total_volume_by_trader[event['args']['_trader']] += event['args']['_return'] + \
-                                                                        event['args']['_conversionFee']
+                        volume += event['args']['_return'] + event['args']['_conversionFee']
                 elif topic == EVENT_PRICE_DATA_UPDATE:
                     event = converter.parse_event('PriceDataUpdate', log)
                     if event['args']['_connectorToken'] == ADDRESSES['bnt']:
@@ -243,26 +220,13 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
                     invariant(prev_bnt_balance, prev_token_balance, prev_token_supply),
                     bnt_balance,
                     token_balance,
-                    sum(volume_by_trader.values()),
-                    volume_by_trader
+                    volume
                 ))
             else:
-                info.history.append(History(block_number, 1, 0, 0, sum(volume_by_trader.values()), volume_by_trader))
+                info.history.append(History(block_number, 1, 0, 0, volume))
             prev_bnt_balance = bnt_balance
             prev_token_balance = token_balance
             prev_token_supply = token_supply
-
-        total_volume = sum(total_volume_by_trader.values())
-        valuable_traders = {t for (t, v) in total_volume_by_trader.items() if v > total_volume / 1000}
-        info.valuable_traders = list(valuable_traders)
-        for history_point in info.history:
-            filtered_volume_by_trader = defaultdict(int)
-            for (t, v) in history_point.volume_by_trader.items():
-                if t in valuable_traders:
-                    filtered_volume_by_trader[t] = v
-                else:
-                    filtered_volume_by_trader['Other'] += v
-            history_point.volume_by_trader = filtered_volume_by_trader
 
         info.bnt_balance = bnt_balance
         info.token_balance = token_balance
@@ -313,23 +277,6 @@ def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
                                  ['{:.2f}'.format(data[b].get(i.token_symbol) or 0) for i in valuable_infos] +
                                  ['{:.2f}'.format(sum(data[b].get(i.token_symbol) or 0 for i in other_infos))]
                                  ) + '\n')
-
-
-@timeit
-def save_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
-    for info in infos:
-        if not info.history:
-            continue
-        with open(VOLUME_DATA.format(info.token_symbol.lower()), 'w') as out_f:
-            out_f.write(','.join(['timestamp'] + ['\u200b{}'.format(t) for t in info.valuable_traders] +
-                                 ['Other']) + '\n')
-            for history_point in info.history:
-                out_f.write(','.join(
-                    [str(timestamps[history_point.block_number] * 1000)] +
-                    ['{:.2f}'.format(history_point.volume_by_trader[t] / 10 ** BNT_DECIMALS)
-                     if history_point.volume_by_trader[t] else ''
-                     for t in info.valuable_traders + ['Other']]
-                ) + '\n')
 
 
 @timeit
@@ -536,7 +483,6 @@ def main():
     save_tokens(valuable_infos)
     save_roi_data(valuable_infos, timestamps)
     save_liquidity_data(relay_infos, timestamps)
-    save_volume_data(valuable_infos, timestamps)
     save_total_volume_data(valuable_infos, timestamps)
     save_providers_data(valuable_infos)
 
