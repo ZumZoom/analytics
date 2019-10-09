@@ -369,6 +369,7 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
         if info.token_symbol in BROKEN_TOKENS:
             if known_info is not None:
                 known_infos.remove(known_info)
+                info_by_token.pop(info.token_address)
             continue
         if known_info is None:
             new_infos.append(info)
@@ -469,7 +470,7 @@ def main():
         relay_infos += new_infos
         populate_history(relay_infos)
         populate_providers(relay_infos)
-        relay_infos = sorted(relay_infos, key=lambda x: x.bnt_balance, reverse=True)
+        relay_infos = sorted(relay_infos, key=lambda x: x.bnt_balance or 0, reverse=True)
         pickle_infos(relay_infos)
         pickle_last_block(CURRENT_BLOCK)
     else:
