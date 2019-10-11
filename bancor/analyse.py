@@ -228,8 +228,8 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
             prev_token_balance = token_balance
             prev_token_supply = token_supply
 
-        info.bnt_balance = bnt_balance
-        info.token_balance = token_balance
+        info.bnt_balance = bnt_balance or 0
+        info.token_balance = token_balance or 0
 
     logging.info('Loaded history of {} converters'.format(len(infos)))
     return infos
