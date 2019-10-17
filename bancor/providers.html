@@ -88,6 +88,7 @@
                 redraw: function(event) {
                   this.renderer.text('<b>Total:</b> ' + this.series[0].total.toFixed(2) + ' BNT', 40, 200)
                                .css({ fontSize: '14px' })
+                               .toFront()
                                .add()
                 }
               }
