@@ -18,7 +18,7 @@
   <title>Bancor ROI By Token</title>
 </head>
 <body style="height:100%">
-  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs">
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs mdl-layout--no-desktop-drawer-button">
     <header class="mdl-layout__header">
       <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
         <a class="mdl-layout__tab" href="./liquidity.html">Liquidity</a>
@@ -42,13 +42,13 @@
         <div class="mdl-layout-spacer"></div>
       </div>
       <div class="mdl-layout__header-row">
-        <select id="tokenSelector" style="width: 300px">
+        <select id="tokenSelector" style="width: 110px">
           <option value="daibnt">DAIBNT</option>
         </select>
         <div class="mdl-layout-spacer"></div>
         <label id="report" style="font-size: 14pt"></label>
         <div class="mdl-layout-spacer"></div>
-        <select id="baselineSelector" style="font-size: 14pt; width: 300px">
+        <select id="baselineSelector" style="width: 110px">
           <option value="token">Hodl Token</option>
           <option value="bnt">Hodl BNT</option>
           <option value="portfolio" selected="selected">Hodl 50/50</option>

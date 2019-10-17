@@ -12,12 +12,13 @@
   </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-orange.min.css" />
   <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
   <title>Bancor Total Trade Volume</title>
 </head>
 <body style="height:100%">
-  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs">
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs mdl-layout--no-desktop-drawer-button">
     <header class="mdl-layout__header">
       <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
         <a class="mdl-layout__tab" href="./liquidity.html">Liquidity</a>
@@ -26,6 +27,14 @@
         <a class="mdl-layout__tab is-active" href="#">Trade Volume</a>
       </div>
     </header>
+    <div class="mdl-layout__drawer">
+      <nav class="mdl-navigation">
+        <a class="mdl-navigation__link" href="./liquidity.html">Liquidity</a>
+        <a class="mdl-navigation__link" href="./providers.html">Liquidity Providers</a>
+        <a class="mdl-navigation__link" href="./roi.html">ROI</a>
+        <a class="mdl-navigation__link" href="#">Trade Volume</a>
+      </nav>
+    </div>
     <main class="mdl-layout__content" style="height:100%">
       <div class="mdl-layout__header-row">
         <div class="mdl-layout-spacer"></div>
