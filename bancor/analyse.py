@@ -14,10 +14,9 @@ from hexbytes import HexBytes
 from retrying import retry
 
 from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
-    EVENT_PRICE_DATA_UPDATE, \
-    ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, TOTAL_VOLUME_DATA, \
-    TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
-    LAST_BLOCK_DUMP, BROKEN_TOKENS, mongo, MONGO_DATABASE
+    EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
+    TOTAL_VOLUME_DATA, TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
+    LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE
 from contracts import BancorConverter, SmartToken, BancorConverterRegistry
 from history import History
 from relay_info import RelayInfo
@@ -366,7 +365,7 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
     data = get_official_tokens() + get_registry_tokens() + get_cotrader_tokens(True) + get_cotrader_tokens(False)
     for info in data:
         known_info = info_by_token.get(info.token_address)
-        if info.token_symbol in BROKEN_TOKENS:
+        if info.token_symbol in DEPRECATED_TOKENS:
             if known_info is not None:
                 known_infos.remove(known_info)
                 info_by_token.pop(info.token_address)
