@@ -375,9 +375,15 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
             info_by_token[info.token_address] = info
         else:
             if known_info.converter_address != info.converter_address:
-                new_infos.append(info)
-                info_by_token[info.token_address] = info
-                known_infos.remove(known_info)
+                # read converter address from blockchain
+                info.converter_address = SmartToken(info.token_address).contract.functions.owner().call()
+                try:
+                    known_infos.remove(known_info)
+                    new_infos.append(info)
+                    info_by_token[info.token_address] = info
+                except ValueError:
+                    # info's converter address was already updated
+                    pass
 
     return new_infos
 
