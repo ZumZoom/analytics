@@ -12,7 +12,7 @@
   </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-orange.min.css" />
   <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -49,15 +49,17 @@
         <div class="mdl-layout-spacer"></div>
       </div>
       <div class="mdl-layout__header-row">
-        <select id="tokenSelector" style="width: 110px">
-          <option value="daibnt">DAIBNT</option>
-        </select>
+        <select id="tokenSelector" style="width: 110px"></select>
         <div class="mdl-layout-spacer"></div>
         <label id="report" style="font-size: 14pt"></label>
         <div class="mdl-layout-spacer"></div>
-        <div id="info-tooltip" class="icon material-icons md-18" style="margin-right: 5px">info</div>
-        <div class="mdl-tooltip" for="info-tooltip">
-          Some useful <br> multiline info <br> will be there.
+        <div id="info-tooltip" class="icon material-icons-outlined md-18" style="margin-right: 5px">info</div>
+        <div class="mdl-tooltip mdl-tooltip--large mdl-tooltip--left" for="info-tooltip" style="max-width: 300px; font-size: 16px">
+          Baseline selector allows to choose the baseline for portfolio returns comparison.<br><br>
+          There are three baseline options:<br><br>
+          — Store all funds in selected token<br>
+          — Store all funds in relay's base token<br>
+          — Store 50% in relay's base token and 50% in selected token<br>
         </div>
         <select id="baselineSelector" style="width: 110px">
           <option value="token">Hodl Token</option>
