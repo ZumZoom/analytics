@@ -7,10 +7,12 @@ from web3.auto.ipc import w3
 ADDRESSES = {
     'bancor_converter_registry': '0x0DDFF327ddF7fE838e3e63d02001ef23ad1EdE8e',
     'bnt': '0x1F573D6Fb3F13d689FF844B4cE37794d79a7FF1C',
+    'usdb': '0x309627af60F0926daa6041B8279484312f2bf060',
 }
 
 DEPRECATED_TOKENS = {
     'BMCBNT', 'TIXBNT', 'NPXSBNT', 'DBETBNT', 'NEXOBNT', 'TIOBNT', 'CHXBNT', 'ULTBNT', 'JOYBNT', 'SWMBNT', 'GOLDBNT',
+    'COTUSDB2'
 }
 
 REORG_PROTECTION_BLOCKS_COUNT = 50
@@ -25,15 +27,15 @@ HISTORY_CHUNK_SIZE = 5000
 
 DIST_DIR = '../dist/bancor/'
 
-LIQUIDITY_DATA = os.path.join(DIST_DIR, 'data/liquidity.csv')
+LIQUIDITY_DATA = os.path.join(DIST_DIR, 'data/{}/liquidity.csv')
 
-PROVIDERS_DATA = os.path.join(DIST_DIR, 'data/providers/{}.csv')
+PROVIDERS_DATA = os.path.join(DIST_DIR, 'data/{}/providers/{}.csv')
 
-ROI_DATA = os.path.join(DIST_DIR, 'data/roi/{}.csv')
+ROI_DATA = os.path.join(DIST_DIR, 'data/{}/roi/{}.csv')
 
-TOTAL_VOLUME_DATA = os.path.join(DIST_DIR, 'data/total_volume.csv')
+TOTAL_VOLUME_DATA = os.path.join(DIST_DIR, 'data/{}/total_volume.csv')
 
-TOKENS_DATA = os.path.join(DIST_DIR, 'data/tokens.json')
+TOKENS_DATA = os.path.join(DIST_DIR, 'data/{}/tokens.json')
 
 THREADS = 2
 

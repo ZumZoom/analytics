@@ -25,6 +25,10 @@ from utils import timeit
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
+def get_base_token(info: RelayInfo) -> str:
+    return 'usdb' if info.token_symbol.endswith('USDB') else 'bnt'
+
+
 def get_chart_range(start: int) -> Iterable[int]:
     return range(start, CURRENT_BLOCK, HISTORY_CHUNK_SIZE)
 
@@ -179,6 +183,7 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
         if len(info.converter_logs) == 0:
             logging.warning('No logs for converter {}. Skipping...'.format(info.token_symbol))
             continue
+        base_token = get_base_token(info)
         converter = BancorConverter(info.converter_address)
         info.history = list()
         info.volume = list()
@@ -186,7 +191,7 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
         prev_bnt_balance, prev_token_balance, prev_token_supply = None, None, None
         bnt_balance, token_balance, token_supply = None, None, None
 
-        for block_number in get_chart_range(info.converter_logs[0]['blockNumber'] // 5000 * 5000):
+        for block_number in get_chart_range(info.converter_logs[0]['blockNumber'] // HISTORY_CHUNK_SIZE * HISTORY_CHUNK_SIZE):
             volume = 0
             while i < len(info.converter_logs) and info.converter_logs[i]['blockNumber'] <= block_number:
                 log = info.converter_logs[i]
@@ -194,13 +199,13 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
                 i += 1
                 if topic == EVENT_CONVERSION:
                     event = converter.parse_event('Conversion', log)
-                    if event['args']['_fromToken'] == ADDRESSES['bnt']:
+                    if event['args']['_fromToken'] == ADDRESSES[base_token]:
                         volume += event['args']['_amount']
                     else:
                         volume += event['args']['_return'] + event['args']['_conversionFee']
                 elif topic == EVENT_PRICE_DATA_UPDATE:
                     event = converter.parse_event('PriceDataUpdate', log)
-                    if event['args']['_connectorToken'] == ADDRESSES['bnt']:
+                    if event['args']['_connectorToken'] == ADDRESSES[base_token]:
                         bnt_balance = event['args']['_connectorBalance']
                         if prev_bnt_balance is None:
                             prev_bnt_balance = bnt_balance
@@ -235,19 +240,19 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
 
 
 @timeit
-def save_tokens(infos: List[RelayInfo]):
-    with open(TOKENS_DATA, 'w') as out_f:
+def save_tokens(infos: List[RelayInfo], base_token: str):
+    with open(TOKENS_DATA.format(base_token), 'w') as out_f:
         json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos
                                if info.history]},
                   out_f, indent=1)
 
 
 @timeit
-def save_roi_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
+def save_roi_data(infos: List[RelayInfo], timestamps: Dict[int, int], base_token: str):
     for info in infos:
         if not info.history:
             continue
-        with open(ROI_DATA.format(info.token_symbol.lower()), 'w') as out_f:
+        with open(ROI_DATA.format(base_token, info.token_symbol.lower()), 'w') as out_f:
             out_f.write('timestamp,ROI,Token Price,Trade Volume\n')
             for history_point in info.history:
                 if history_point.bnt_balance == 0:
@@ -259,9 +264,9 @@ def save_roi_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
 
 
 @timeit
-def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
-    valuable_infos = [info for info in infos if is_valuable(info)]
-    other_infos = [info for info in infos if not is_valuable(info)]
+def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int], base_token: str):
+    valuable_infos = [info for info in infos if is_valuable(info, base_token)]
+    other_infos = [info for info in infos if not is_valuable(info, base_token)]
 
     data = defaultdict(dict)
 
@@ -269,7 +274,7 @@ def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
         for history_point in info.history:
             data[history_point.block_number][info.token_symbol] = history_point.bnt_balance / 10 ** BNT_DECIMALS
 
-    with open(LIQUIDITY_DATA, 'w') as out_f:
+    with open(LIQUIDITY_DATA.format(base_token, base_token), 'w') as out_f:
         out_f.write(','.join(['timestamp'] + [i.token_symbol for i in valuable_infos] + ['Other\n']))
         for b, ts in sorted(timestamps.items()):
             out_f.write(','.join([str(ts * 1000)] +
@@ -279,7 +284,7 @@ def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
 
 
 @timeit
-def save_total_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
+def save_total_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int], base_token: str):
     valuable_infos = infos
     other_infos = []
 
@@ -289,7 +294,7 @@ def save_total_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
         for history_point in info.history:
             data[history_point.block_number][info.token_symbol] = history_point.trade_volume / 10 ** BNT_DECIMALS
 
-    with open(TOTAL_VOLUME_DATA, 'w') as out_f:
+    with open(TOTAL_VOLUME_DATA.format(base_token), 'w') as out_f:
         out_f.write(','.join(['timestamp'] + [i.token_symbol for i in valuable_infos] + ['Other\n']))
         for b, ts in sorted(timestamps.items()):
             out_f.write(','.join([str(ts * 1000)] +
@@ -299,11 +304,11 @@ def save_total_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
 
 
 @timeit
-def save_providers_data(infos: List[RelayInfo]):
+def save_providers_data(infos: List[RelayInfo], base_token: str):
     for info in infos:
         if not info.history:
             continue
-        with open(PROVIDERS_DATA.format(info.token_symbol.lower()), 'w') as out_f:
+        with open(PROVIDERS_DATA.format(base_token, info.token_symbol.lower()), 'w') as out_f:
             out_f.write('provider,bnt\n')
             total_supply = sum(info.providers.values())
             remaining_supply = total_supply
@@ -388,8 +393,8 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
     return new_infos
 
 
-def is_valuable(info: RelayInfo) -> bool:
-    return info.bnt_balance >= 10000 * 10 ** BNT_DECIMALS
+def is_valuable(info: RelayInfo, base_token: str) -> bool:
+    return info.bnt_balance >= 10000 * 10 ** BNT_DECIMALS if base_token == 'bnt' else not is_empty(info)
 
 
 def is_empty(info: RelayInfo) -> bool:
@@ -486,13 +491,15 @@ def main():
     timestamps = load_timestamps(min_block, timestamps)
     pickle_timestamps(timestamps)
 
-    valuable_infos = [info for info in relay_infos if is_valuable(info)]
+    for base_token in ['bnt', 'usdb']:
+        infos = list(filter(lambda info: get_base_token(info) == base_token, relay_infos))
+        valuable_infos = [info for info in infos if is_valuable(info, base_token)]
 
-    save_tokens(valuable_infos)
-    save_roi_data(valuable_infos, timestamps)
-    save_liquidity_data(relay_infos, timestamps)
-    save_total_volume_data(valuable_infos, timestamps)
-    save_providers_data(valuable_infos)
+        save_tokens(valuable_infos, base_token)
+        save_roi_data(valuable_infos, timestamps, base_token)
+        save_liquidity_data(infos, timestamps, base_token)
+        save_total_volume_data(valuable_infos, timestamps, base_token)
+        save_providers_data(valuable_infos, base_token)
 
     not_empty_infos = [info for info in relay_infos if not is_empty(info)]
 
