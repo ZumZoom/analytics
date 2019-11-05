@@ -123,7 +123,7 @@
               opposite: false,
               reversedStacks: false,
               labels: {
-                format: '{value} BNT'
+                format: '{value} ' + base_currency
               }
             },
             tooltip: {
@@ -155,7 +155,7 @@
                         return a + (b.x >= chartOb.min && b.x <= chartOb.max ? b.y : 0);
                       }, 0);
                     }, 0).toFixed(0) +
-                    ' BNT</b>'
+                    ' ' + base_currency + '</b>'
                   );
                 }
               }
