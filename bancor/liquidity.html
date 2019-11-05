@@ -15,16 +15,21 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-orange.min.css" />
   <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://code.highcharts.com/stock/highstock.js"></script>
+  <script src="https://code.highcharts.com/modules/data.js"></script>
   <title>Bancor Liquidity</title>
 </head>
 <body style="height:100%">
   <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs mdl-layout--no-desktop-drawer-button">
     <header class="mdl-layout__header">
       <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-          <a class="mdl-layout__tab is-active" href="#">Liquidity</a>
-          <a class="mdl-layout__tab" href="./providers.html">Liquidity Providers</a>
-          <a class="mdl-layout__tab" href="./roi.html">ROI</a>
-          <a class="mdl-layout__tab" href="./total_volume.html">Trade Volume</a>
+        <a class="mdl-layout__tab is-active" href="#">Liquidity</a>
+        <a class="mdl-layout__tab" href="./providers.html">Liquidity Providers</a>
+        <a class="mdl-layout__tab" href="./roi.html">ROI</a>
+        <a class="mdl-layout__tab" href="./total_volume.html">Trade Volume</a>
+        <div class="mdl-layout-spacer"></div>
+        <button class="mdl-button mdl-js-button mdl-button--accent" id="baseSelector" style="width: 100px; height: 48px">BNT</button>
       </div>
     </header>
     <div class="mdl-layout__drawer">
@@ -46,73 +51,88 @@
       </noscript>
       <div id="container" style="height:86%"></div>
 
-
-      <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-      <script src="https://code.highcharts.com/stock/highstock.js"></script>
-      <script src="https://code.highcharts.com/modules/data.js"></script>
       <script>
-        var csv_url = window.location.href
-        csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/liquidity.csv'
-        Highcharts.stockChart('container', {
-          chart: {
-            type: 'area',
-            backgroundColor: null,
-          },
-          rangeSelector: {
-            selected: 2,
-            buttons: [{
-              type: 'week',
-              count: 1,
-              text: '1w'
-            }, {
-              type: 'month',
-              count: 1,
-              text: '1m'
-            }, {
-              type: 'month',
-              count: 3,
-              text: '3m'
-            }, {
-              type: 'all',
-              text: 'All'
-            }],
-            inputEnabled: false
-          },
-          title: {
-            text: null
-          },
-          plotOptions: {
-            area: {
-              stacking: 'normal'
-            }
-          },
-          legend: {
-            enabled: true,
-            align: 'center'
-          },
-          credits: {
-            enabled: false
-          },
-          yAxis: {
-            opposite: false,
-            reversedStacks: false,
-            labels: {
-              format: '{value} BNT'
-            }
-          },
-          tooltip: {
-           shared: true,
-           split: false,
-           pointFormat: '<b>{series.name}:</b> {point.y} ({point.percentage:.0f}%)<br>',
-           footerFormat: '<b>Total: {point.total:,.0f} </b>'
-          },
-          navigator: {
-              enabled: false
-          },
-          data: {
-            csvURL: csv_url
-          }
+        const switcher = {
+          'BNT': 'USDB',
+          'USDB': 'BNT',
+        };
+        const base_selector = $('#baseSelector');
+        var base_currency = base_selector.text().toLowerCase();
+        var csv_url = window.location.href;
+        csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/' + base_currency + '/liquidity.csv';
+
+        document.getElementById("baseSelector").addEventListener('click', function() {
+          base_selector.html(switcher[base_selector.text()]);
+          base_currency = base_selector.text().toLowerCase();
+          csv_url = window.location.href;
+          csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/' + base_currency + '/liquidity.csv';
+          createChart();
         });
+
+        function createChart() {
+          Highcharts.stockChart('container', {
+            chart: {
+              type: 'area',
+              backgroundColor: null,
+            },
+            rangeSelector: {
+              selected: 2,
+              buttons: [{
+                type: 'week',
+                count: 1,
+                text: '1w'
+              }, {
+                type: 'month',
+                count: 1,
+                text: '1m'
+              }, {
+                type: 'month',
+                count: 3,
+                text: '3m'
+              }, {
+                type: 'all',
+                text: 'All'
+              }],
+              inputEnabled: false
+            },
+            title: {
+              text: null
+            },
+            plotOptions: {
+              area: {
+                stacking: 'normal'
+              }
+            },
+            legend: {
+              enabled: true,
+              align: 'center'
+            },
+            credits: {
+              enabled: false
+            },
+            yAxis: {
+              opposite: false,
+              reversedStacks: false,
+              labels: {
+                format: '{value} BNT'
+              }
+            },
+            tooltip: {
+             shared: true,
+             split: false,
+             pointFormat: '<b>{series.name}:</b> {point.y} ({point.percentage:.0f}%)<br>',
+             footerFormat: '<b>Total: {point.total:,.0f} </b>'
+            },
+            navigator: {
+                enabled: false
+            },
+            data: {
+              csvURL: csv_url
+            }
+          });
+        }
+
+        createChart();
       </script>
       <footer class="mdl-mini-footer" style="flex: 0 0 auto;padding:15px">
         <div class="mdl-mini-footer__left-section">
