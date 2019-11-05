@@ -423,20 +423,24 @@ def save_providers_to_mongo(infos: List[RelayInfo]):
             continue
         remaining_supply = total_supply
 
+        base_token = get_base_token(info)
+
         for p, v in sorted(info.providers.items(), key=lambda x: x[1], reverse=True):
             s = v / total_supply
             if s >= 0.01:
                 entries.append({
                     'token': info.token_symbol.lower(),
+                    'base_token': base_token,
                     'provider': p,
-                    'bnt': info.bnt_balance * s / 10 ** BNT_DECIMALS
+                    'base_token_balance': info.bnt_balance * s / 10 ** BNT_DECIMALS,
                 })
                 remaining_supply -= v
         if remaining_supply > 0:
             entries.append({
                 'token': info.token_symbol.lower(),
+                'base_token': base_token,
                 'provider': 'Other',
-                'bnt': info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS
+                'base_token_balance': info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS,
             })
     providers_collection.insert_many(entries)
 
@@ -450,17 +454,20 @@ def save_history_to_mongo(infos: List[RelayInfo], timestamps: Dict[int, int]):
         if not info.history:
             continue
 
+        base_token = get_base_token(info)
+
         for history_point in info.history:
             if history_point.bnt_balance == 0:
                 continue
 
             entries.append({
                 'token': info.token_symbol.lower(),
+                'base_token': base_token,
                 'timestamp': timestamps[history_point.block_number],
                 'gm_change': history_point.dm_change,
                 'price': history_point.token_balance / history_point.bnt_balance,
                 'volume': history_point.trade_volume / 10 ** BNT_DECIMALS,
-                'bnt': history_point.bnt_balance / 10 ** BNT_DECIMALS
+                'base_token_balance': history_point.bnt_balance / 10 ** BNT_DECIMALS,
             })
     history_collection.insert_many(entries)
 
