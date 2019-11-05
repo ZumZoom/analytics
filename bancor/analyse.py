@@ -404,7 +404,14 @@ def is_empty(info: RelayInfo) -> bool:
 def save_tokens_to_mongo(infos: List[RelayInfo]):
     tokens_collection = mongo[MONGO_DATABASE].tokens
     tokens_collection.drop()
-    tokens = [{'token': info.token_symbol.lower(), 'converter': info.converter_address} for info in infos]
+    tokens = [
+        {
+            'token': info.token_symbol.lower(),
+            'converter': info.converter_address,
+            'base_token': get_base_token(info)
+        }
+        for info in infos
+    ]
     tokens_collection.insert_many(tokens)
 
 
