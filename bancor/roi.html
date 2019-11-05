@@ -61,7 +61,7 @@
         </div>
         <select id="baselineSelector" style="width: 110px">
           <option value="token">Hodl Token</option>
-          <option value="bnt">Hodl BNT</option>
+          <option value="bnt" id="bnt-option">Hodl BNT</option>
           <option value="portfolio" selected="selected">Hodl 50/50</option>
         </select>
       </div>
@@ -116,6 +116,7 @@
         document.getElementById("baseSelector").addEventListener('click', function() {
           base_selector.html(switcher[base_selector.text()]);
           base_currency = base_selector.text().toLowerCase();
+          $("#bnt-option").html('Hodl ' + base_selector.text());
           updateTokenSelector(true);
         });
 
@@ -161,7 +162,7 @@
               opposite: true
             }, {
               labels: {
-                format: '{value} ' + base_currency
+                format: '{value} ' + base_selector.text()
               },
               title: {
                 text: ''
@@ -191,7 +192,7 @@
               yAxis: 1,
               zIndex: 0,
               tooltip: {
-                valueSuffix: ' ' + base_currency
+                valueSuffix: ' ' + base_selector.text()
               },
               type: 'column',
               color: '#bbb'

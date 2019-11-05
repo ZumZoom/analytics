@@ -123,7 +123,7 @@
               opposite: false,
               reversedStacks: false,
               labels: {
-                format: '{value} ' + base_currency
+                format: '{value} ' + base_selector.text()
               }
             },
             tooltip: {
@@ -155,7 +155,7 @@
                         return a + (b.x >= chartOb.min && b.x <= chartOb.max ? b.y : 0);
                       }, 0);
                     }, 0).toFixed(0) +
-                    ' ' + base_currency + '</b>'
+                    ' ' + base_selector.text() + '</b>'
                   );
                 }
               }
