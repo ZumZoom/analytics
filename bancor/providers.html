@@ -23,7 +23,7 @@
   <title>Bancor Liquidity Providers By Token</title>
 </head>
 <body style="height:100%">
-  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs mdl-layout--no-desktop-drawer-button">
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs">
     <header class="mdl-layout__header">
       <div class="mdl-layout__tab-bar mdl-js-ripple-effect">
         <a class="mdl-layout__tab" href="./liquidity.html">Liquidity</a>
@@ -40,6 +40,7 @@
         <a class="mdl-navigation__link" href="#">Liquidity Providers</a>
         <a class="mdl-navigation__link" href="./roi.html">ROI</a>
         <a class="mdl-navigation__link" href="./total_volume.html">Trade Volume</a>
+        <button class="mdl-button mdl-js-button mdl-button--accent" id="baseSelectorMobile" style="width: 100%; height: 56px; padding-right: 146px">BNT</button>
       </nav>
     </div>
     <main class="mdl-layout__content" style="height: 100%">
@@ -64,6 +65,7 @@
           'USDB': 'BNT',
         };
         const base_selector = $('#baseSelector');
+        const base_selector_mobile = $('#baseSelectorMobile');
         const token_selector = $('#tokenSelector');
         var base_currency = base_selector.text().toLowerCase();
         var csv_url = undefined;
@@ -95,11 +97,16 @@
           });
         }
 
-        document.getElementById("baseSelector").addEventListener('click', function() {
-          base_selector.html(switcher[base_selector.text()]);
-          base_currency = base_selector.text().toLowerCase();
+        function updateBaseSelectors() {
+          var new_text = switcher[base_selector.text()];
+          base_selector.html(new_text);
+          base_selector_mobile.html(new_text);
+          base_currency = new_text.toLowerCase();
           updateTokenSelector(true);
-        });
+        }
+
+        document.getElementById("baseSelector").addEventListener('click', updateBaseSelectors);
+        document.getElementById("baseSelectorMobile").addEventListener('click', updateBaseSelectors);
 
         $(document).ready(function() {
           updateTokenSelector(false);
