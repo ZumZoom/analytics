@@ -57,3 +57,8 @@ class BancorConverterRegistry(Contract):
 class BancorConverter(Contract):
     def __init__(self, address):
         super().__init__('abi/BancorConverter.abi', address)
+
+
+class ERC20(Contract):
+    def __init__(self, address):
+        super().__init__('abi/ERC20.abi', address)

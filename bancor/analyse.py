@@ -17,7 +17,7 @@ from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS,
     EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
     TOTAL_VOLUME_DATA, TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
     LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE
-from contracts import BancorConverter, SmartToken, BancorConverterRegistry
+from contracts import BancorConverter, SmartToken, BancorConverterRegistry, ERC20
 from history import History
 from relay_info import RelayInfo
 from utils import timeit
@@ -102,6 +102,15 @@ def get_cotrader_tokens(official: bool = True) -> List[RelayInfo]:
 
     logging.info('Got info about {} tokens from cotrader {} list'.format(len(tokens_data), list_name))
     return tokens_data
+
+
+@timeit
+def populate_decimals(infos: List[RelayInfo]) -> List[RelayInfo]:
+    for info in infos:
+        if not info.token_decimals:
+            token_address = BancorConverter(info.token_address).contract.functions.connectorTokens(1).call()
+            info.token_decimals = ERC20(token_address).contract.functions.decimals.call()
+    return infos
 
 
 @timeit
@@ -492,6 +501,7 @@ def main():
         if relay_infos:
             load_logs(saved_block + 1, relay_infos)
         relay_infos += new_infos
+        populate_decimals(relay_infos)
         populate_history(relay_infos)
         populate_providers(relay_infos)
         relay_infos = sorted(relay_infos, key=lambda x: x.bnt_balance or 0, reverse=True)
