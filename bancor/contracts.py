@@ -58,7 +58,13 @@ class BancorConverter(Contract):
     def __init__(self, address):
         super().__init__('abi/BancorConverter.abi', address)
 
+    def connector_tokens(self, index: int) -> str:
+        return self.contract.functions.connectorTokens(index).call()
+
 
 class ERC20(Contract):
     def __init__(self, address):
         super().__init__('abi/ERC20.abi', address)
+
+    def decimals(self) -> int:
+        return self.contract.functions.decimals().call()

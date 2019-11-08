@@ -109,10 +109,10 @@ def populate_decimals(infos: List[RelayInfo]) -> List[RelayInfo]:
     for info in infos:
         if not info.token_decimals:
             base_token_address = ADDRESSES[get_base_token(info)].lower()
-            token_address = BancorConverter(info.converter_address).contract.functions.connectorTokens(0).call()
+            token_address = BancorConverter(info.converter_address).connector_tokens(0)
             if token_address == base_token_address:
-                token_address = BancorConverter(info.converter_address).contract.functions.connectorTokens(1).call()
-            info.token_decimals = ERC20(token_address).contract.functions.decimals.call()
+                token_address = BancorConverter(info.converter_address).connector_tokens(1)
+            info.token_decimals = ERC20(token_address).decimals()
     return infos
 
 
