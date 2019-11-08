@@ -12,6 +12,7 @@ import requests
 from eth_utils import to_checksum_address
 from hexbytes import HexBytes
 from retrying import retry
+from web3.exceptions import BadFunctionCallOutput
 
 from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
     EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
@@ -107,11 +108,21 @@ def get_cotrader_tokens(official: bool = True) -> List[RelayInfo]:
 @timeit
 def populate_decimals(infos: List[RelayInfo]) -> List[RelayInfo]:
     for info in infos:
-        if not info.token_decimals:
+        if not (hasattr(info, 'decimals') and info.token_decimals):
             base_token_address = ADDRESSES[get_base_token(info)].lower()
-            token_address = BancorConverter(info.converter_address).connector_tokens(0)
-            if token_address == base_token_address:
-                token_address = BancorConverter(info.converter_address).connector_tokens(1)
+            try:
+                try:
+                    token_address = BancorConverter(info.converter_address).connector_tokens(0)
+                    if token_address == base_token_address:
+                        token_address = BancorConverter(info.converter_address).connector_tokens(1)
+                except BadFunctionCallOutput:
+                    # Old converter
+                    token_address = BancorConverter(info.converter_address).reserve_tokens(0)
+                    if token_address == base_token_address:
+                        token_address = BancorConverter(info.converter_address).reserve_tokens(1)
+            except:
+                print('token: {}, converter: {}, relay: {}'.format(info.token_symbol, info.converter_address, info.token_address))
+                continue
             info.token_decimals = ERC20(token_address).decimals()
     return infos
 

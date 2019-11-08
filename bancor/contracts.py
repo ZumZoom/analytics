@@ -61,6 +61,9 @@ class BancorConverter(Contract):
     def connector_tokens(self, index: int) -> str:
         return self.contract.functions.connectorTokens(index).call()
 
+    def reserve_tokens(self, index: int) -> str:
+        return self.contract.functions.reserveTokens(index).call()
+
 
 class ERC20(Contract):
     def __init__(self, address):
