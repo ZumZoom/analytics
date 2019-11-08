@@ -31,6 +31,8 @@ LIQUIDITY_DATA = os.path.join(DIST_DIR, 'data/{}/liquidity.csv')
 
 PROVIDERS_DATA = os.path.join(DIST_DIR, 'data/{}/providers/{}.csv')
 
+PROVIDERS_TOKEN_DATA = os.path.join(DIST_DIR, 'data/{}/providers/{}_token.json')
+
 ROI_DATA = os.path.join(DIST_DIR, 'data/{}/roi/{}.csv')
 
 TOTAL_VOLUME_DATA = os.path.join(DIST_DIR, 'data/{}/total_volume.csv')

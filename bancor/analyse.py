@@ -17,7 +17,7 @@ from web3.exceptions import BadFunctionCallOutput
 from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
     EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
     TOTAL_VOLUME_DATA, TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
-    LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE
+    LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE, PROVIDERS_TOKEN_DATA
 from contracts import BancorConverter, SmartToken, BancorConverterRegistry, ERC20
 from history import History
 from relay_info import RelayInfo
@@ -106,7 +106,7 @@ def get_cotrader_tokens(official: bool = True) -> List[RelayInfo]:
 
 
 @timeit
-def populate_decimals(infos: List[RelayInfo]) -> List[RelayInfo]:
+def populate_token_info(infos: List[RelayInfo]) -> List[RelayInfo]:
     for info in infos:
         if not (hasattr(info, 'decimals') and info.token_decimals):
             base_token_address = ADDRESSES[get_base_token(info)].lower()
@@ -123,7 +123,9 @@ def populate_decimals(infos: List[RelayInfo]) -> List[RelayInfo]:
             except:
                 print('token: {}, converter: {}, relay: {}'.format(info.token_symbol, info.converter_address, info.token_address))
                 continue
-            info.token_decimals = ERC20(token_address).decimals()
+            erc_20 = ERC20(token_address)
+            info.token_decimals = erc_20.decimals()
+            info.underlying_token_symbol = erc_20.symbol()
     return infos
 
 
@@ -342,6 +344,12 @@ def save_providers_data(infos: List[RelayInfo], base_token: str):
                     remaining_supply -= v
             if remaining_supply > 0:
                 out_f.write('Other,{:.2f}\n'.format(info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS))
+        with open(PROVIDERS_TOKEN_DATA.format(base_token, info.token_symbol.lower()), 'w') as out_f:
+            data = {
+                'token_name': info.underlying_token_symbol,
+                'total_tokens': info.token_balance / 10 ** info.token_decimals
+            }
+            json.dump(data, out_f)
 
 
 def pickle_timestamps(timestamps: Dict[int, int]):
@@ -515,7 +523,7 @@ def main():
         if relay_infos:
             load_logs(saved_block + 1, relay_infos)
         relay_infos += new_infos
-        populate_decimals(relay_infos)
+        populate_token_info(relay_infos)
         populate_history(relay_infos)
         populate_providers(relay_infos)
         relay_infos = sorted(relay_infos, key=lambda x: x.bnt_balance or 0, reverse=True)

@@ -71,3 +71,6 @@ class ERC20(Contract):
 
     def decimals(self) -> int:
         return self.contract.functions.decimals().call()
+
+    def symbol(self) -> int:
+        return self.contract.functions.symbol().call()
