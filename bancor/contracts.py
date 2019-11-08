@@ -66,11 +66,40 @@ class BancorConverter(Contract):
 
 
 class ERC20(Contract):
+    HARDCODED_INFO = {
+        '0xE0B7927c4aF23765Cb51314A0E0521A9645F0E2A': ('DGD', 9),
+        '0x8eFFd494eB698cc399AF6231fCcd39E08fd20B15': ('PIX', 0),
+    }
+
     def __init__(self, address):
         super().__init__('abi/ERC20.abi', address)
 
     def decimals(self) -> int:
-        return self.contract.functions.decimals().call()
+        if self.contract.address in self.HARDCODED_INFO:
+            return self.HARDCODED_INFO[self.contract.address][1]
+        else:
+            try:
+                return self.contract.functions.decimals().call()
+            except:
+                with open('abi/ERC20_CAPS.abi') as fh:
+                    token = w3.eth.contract(abi=json.load(fh), address=self.contract.address)
+                return token.functions.DECIMALS().call()
 
     def symbol(self) -> str:
-        return self.contract.functions.symbol().call().strip(b'\x00').decode()
+        if self.contract.address in self.HARDCODED_INFO:
+            return self.HARDCODED_INFO[self.contract.address][0]
+        else:
+            try:
+                return self.contract.functions.symbol().call()
+            except:
+                try:
+                    with open('abi/ERC20_CAPS.abi') as fh:
+                        token = w3.eth.contract(abi=json.load(fh), address=self.contract.address)
+                    return token.functions.SYMBOL().call()
+                except:
+                    try:
+                        with open('abi/ERC20_bytes.abi') as fh:
+                            token = w3.eth.contract(abi=json.load(fh), address=self.contract.address)
+                        return token.functions.symbol().call().decode().strip('\x00')
+                    except:
+                        return None

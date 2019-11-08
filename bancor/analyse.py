@@ -108,8 +108,8 @@ def get_cotrader_tokens(official: bool = True) -> List[RelayInfo]:
 @timeit
 def populate_token_info(infos: List[RelayInfo]) -> List[RelayInfo]:
     for info in infos:
-        if not (hasattr(info, 'decimals') and info.token_decimals):
-            base_token_address = ADDRESSES[get_base_token(info)].lower()
+        if not (hasattr(info, 'token_decimals') and info.token_decimals is not None):
+            base_token_address = ADDRESSES[get_base_token(info)]
             try:
                 try:
                     token_address = BancorConverter(info.converter_address).connector_tokens(0)
@@ -121,11 +121,17 @@ def populate_token_info(infos: List[RelayInfo]) -> List[RelayInfo]:
                     if token_address == base_token_address:
                         token_address = BancorConverter(info.converter_address).reserve_tokens(1)
             except:
-                print('token: {}, converter: {}, relay: {}'.format(info.token_symbol, info.converter_address, info.token_address))
+                print('token: {}, converter: {}, relay: {}'.format(
+                    info.token_symbol, info.converter_address, info.token_address))
+                info.token_decimals = None
+                info.underlying_token_symbol = None
                 continue
             erc_20 = ERC20(token_address)
             info.token_decimals = erc_20.decimals()
             info.underlying_token_symbol = erc_20.symbol()
+            print('Success: token: {}, undelying token: {}, address: {}, decimals: {}'.format(
+                info.token_symbol, info.underlying_token_symbol, token_address, info.token_decimals))
+
     return infos
 
 

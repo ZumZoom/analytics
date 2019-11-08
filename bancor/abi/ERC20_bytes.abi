@@ -2,11 +2,11 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "symbol",
+    "name": "decimals",
     "outputs": [
       {
         "name": "",
-        "type": "string"
+        "type": "uint8"
       }
     ],
     "payable": false,
@@ -16,11 +16,11 @@
   {
     "constant": true,
     "inputs": [],
-    "name": "decimals",
+    "name": "symbol",
     "outputs": [
       {
         "name": "",
-        "type": "uint8"
+        "type": "bytes32"
       }
     ],
     "payable": false,

@@ -13,7 +13,7 @@ class RelayInfo:
         self.underlying_token_symbol = None
         self.converter_address = converter_address
         self.bnt_balance = 0
-        self.token_decimals = 0
+        self.token_decimals = None
         self.token_balance = 0
         self.providers = dict()
         self.history: List[History] = list()
