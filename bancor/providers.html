@@ -69,6 +69,8 @@
         const token_selector = $('#tokenSelector');
         var base_currency = base_selector.text().toLowerCase();
         var csv_url = undefined;
+        var total_tokens = undefined;
+        var token_name = undefined;
 
         function updateTokenSelector(destroy) {
           if (destroy) token_selector.select2('destroy');
@@ -118,7 +120,7 @@
               type: 'pie',
               events: {
                 redraw: function(event) {
-                  this.renderer.text('<b>Total:</b> ' + this.series[0].total.toFixed(2) + ' ' + base_selector.text(), 40, 200)
+                  this.renderer.text('<b>Total:</b><br/><b>' + this.series[0].total.toFixed(0) + ' ' + base_selector.text() + '</b><br/><b>' + total_tokens.toFixed(0) + ' ' + token_name.toUpperCase() + '</b>', 40, 200)
                                .css({ fontSize: '14px' })
                                .add()
                                .toFront()
@@ -133,7 +135,10 @@
               enabled: false
             },
             tooltip: {
-              pointFormat: '<b>{point.y} ' + base_selector.text() + ' ({point.percentage:.0f}%)</b>',
+              formatter: function () {
+                var tokens_share = total_tokens * this.percentage / 100;
+                return '<b>' + this.point.name + '</b><br/><b>' + this.point.y.toFixed(0) + ' ' + base_selector.text() + '</b><br/><b>' + tokens_share.toFixed(0) + ' ' + token_name.toUpperCase() + '</b>'
+              }
             },
             plotOptions: {
               pie: {
@@ -141,7 +146,7 @@
                 cursor: 'pointer',
                 dataLabels: {
                   enabled: true,
-                  format: '<b>{point.name}</b>: {point.y} ' + base_selector.text() + ' ({point.percentage:.0f}%)',
+                  format: '<b>{point.name}</b>: {point.percentage:.2f}%',
                   style: {
                     color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
                   },
@@ -158,7 +163,14 @@
           csv_url = window.location.href;
           csv_url = csv_url.substring(0, csv_url.lastIndexOf('/'));
           csv_url = csv_url + '/data/' + base_currency + '/providers/' + e.params.data.id + '.csv';
-          createChart();
+          $.ajax({
+            type: 'GET',
+            url: './data/' + base_currency + '/providers/' + e.params.data.id + '_token.json'
+          }).then(function (data) {
+            token_name = data['token_name'];
+            total_tokens = data['total_tokens'];
+            createChart();
+          });
         });
       </script>
       <footer class="mdl-mini-footer" style="flex: 0 0 auto;padding:15px">
