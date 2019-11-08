@@ -108,7 +108,10 @@ def get_cotrader_tokens(official: bool = True) -> List[RelayInfo]:
 def populate_decimals(infos: List[RelayInfo]) -> List[RelayInfo]:
     for info in infos:
         if not info.token_decimals:
-            token_address = BancorConverter(info.token_address).contract.functions.connectorTokens(1).call()
+            base_token_address = ADDRESSES[get_base_token(info)].lower()
+            token_address = BancorConverter(info.converter_address).contract.functions.connectorTokens(0).call()
+            if token_address == base_token_address:
+                token_address = BancorConverter(info.converter_address).contract.functions.connectorTokens(1).call()
             info.token_decimals = ERC20(token_address).contract.functions.decimals.call()
     return infos
 
