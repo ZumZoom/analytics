@@ -346,7 +346,7 @@ def save_providers_data(infos: List[RelayInfo], base_token: str):
                 out_f.write('Other,{:.2f}\n'.format(info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS))
         with open(PROVIDERS_TOKEN_DATA.format(base_token, info.token_symbol.lower()), 'w') as out_f:
             data = {
-                'token_name': info.underlying_token_symbol.decode(),
+                'token_name': info.underlying_token_symbol,
                 'total_tokens': info.token_balance / 10 ** info.token_decimals
             }
             json.dump(data, out_f)
