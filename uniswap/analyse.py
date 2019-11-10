@@ -99,6 +99,9 @@ def load_exchange_infos(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
         for new_info in new_infos:
             info = known_tokens.get(new_info.token_address)
             if info:
+                info.token_name = new_info.token_name
+                info.token_symbol = new_info.token_symbol
+                info.token_decimals = new_info.token_decimals
                 info.eth_balance = new_info.eth_balance
                 info.token_balance = new_info.token_balance
             else:

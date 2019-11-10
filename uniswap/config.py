@@ -52,6 +52,7 @@ uniswap_factory = web3.eth.contract(abi=UNISWAP_FACTORY_ABI, address=UNISWAP_FAC
 HARDCODED_INFO = {
     '0xE0B7927c4aF23765Cb51314A0E0521A9645F0E2A': ('DGD', 'DGD', 9),
     '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413': ('TheDAO', 'TheDAO', 16),
+    '0xaCf5C0101cbBe8476E87c652E0bEF33684Cc94D6': ('Synth sETH', 'sETH old', 18)
 }
 
 DIST_DIR = '../dist/uniswap/'
