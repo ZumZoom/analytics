@@ -52,7 +52,8 @@ uniswap_factory = web3.eth.contract(abi=UNISWAP_FACTORY_ABI, address=UNISWAP_FAC
 HARDCODED_INFO = {
     '0xE0B7927c4aF23765Cb51314A0E0521A9645F0E2A': ('DGD', 'DGD', 9),
     '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413': ('TheDAO', 'TheDAO', 16),
-    '0x42456D7084eacF4083f1140d3229471bbA2949A8': ('Synth sETH', 'sETH old', 18)
+    '0x42456D7084eacF4083f1140d3229471bbA2949A8': ('Synth sETH', 'sETH old', 18),
+    '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359': ('Sai Stablecoin v1.0', 'SAI', 18),
 }
 
 DIST_DIR = '../dist/uniswap/'
