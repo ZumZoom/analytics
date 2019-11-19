@@ -69,6 +69,7 @@ class ERC20(Contract):
     HARDCODED_INFO = {
         '0xE0B7927c4aF23765Cb51314A0E0521A9645F0E2A': ('DGD', 9),
         '0x8eFFd494eB698cc399AF6231fCcd39E08fd20B15': ('PIX', 0),
+        '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359': ('SAI', 18),
     }
 
     def __init__(self, address):
