@@ -73,7 +73,7 @@ def get_registry_tokens() -> List[RelayInfo]:
     tokens_data = list()
     registry = BancorConverterRegistry(ADDRESSES['bancor_converter_registry'])
     converter_addresses = registry.latest_converter_addresses()
-    for token_addr, converter_addr in converter_addresses.items():
+    for _, converter_addr in converter_addresses.items():
         converter = BancorConverter(converter_addr)
         relay_token_addr = converter.contract.functions.token().call()
         relay_token = SmartToken(relay_token_addr)
@@ -129,7 +129,7 @@ def populate_token_info(infos: List[RelayInfo]) -> List[RelayInfo]:
             erc_20 = ERC20(token_address)
             info.token_decimals = erc_20.decimals()
             info.underlying_token_symbol = erc_20.symbol()
-            print('Success: token: {}, undelying token: {}, address: {}, decimals: {}'.format(
+            print('Success: token: {}, underlying token: {}, address: {}, decimals: {}'.format(
                 info.token_symbol, info.underlying_token_symbol, token_address, info.token_decimals))
 
     return infos
