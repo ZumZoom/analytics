@@ -344,6 +344,8 @@ def save_providers_data(infos: List[RelayInfo], base_token: str):
             out_f.write('provider,bnt\n')
             total_supply = sum(info.providers.values())
             remaining_supply = total_supply
+            if total_supply == 0:
+                continue
             for p, v in sorted(info.providers.items(), key=lambda x: x[1], reverse=True):
                 s = v / total_supply
                 if s >= 0.01:
