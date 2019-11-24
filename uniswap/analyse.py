@@ -241,58 +241,61 @@ def skip_transfer(info: ExchangeInfo, log: dict, i: int) -> bool:
 @timeit
 def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
     for info in infos:
-        info.roi = list()
-        exchange = web3.eth.contract(abi=UNISWAP_EXCHANGE_ABI, address=info.exchange_address)
-        i = 0
-        eth_balance, token_balance = 0, 0
-        for block_number in get_chart_range():
-            dm_numerator, dm_denominator, trade_volume = 1, 1, 0
-            while i < len(info.logs) and info.logs[i]['blockNumber'] <= block_number:
-                log = info.logs[i]
-                topic = log['topics'][0].hex()
-                i += 1
-                if topic == EVENT_TRANSFER:
-                    if log['address'] == info.exchange_address:
-                        # skip liquidity token transfers
-                        continue
-                    elif skip_transfer(info, log, i):
-                        continue
-                    else:
-                        event = get_event_data(web3.codec, exchange.events.Transfer._get_event_abi(), log)
-                        if event['args']['to'] != info.exchange_address:
+        try:
+            info.roi = list()
+            exchange = web3.eth.contract(abi=UNISWAP_EXCHANGE_ABI, address=info.exchange_address)
+            i = 0
+            eth_balance, token_balance = 0, 0
+            for block_number in get_chart_range():
+                dm_numerator, dm_denominator, trade_volume = 1, 1, 0
+                while i < len(info.logs) and info.logs[i]['blockNumber'] <= block_number:
+                    log = info.logs[i]
+                    topic = log['topics'][0].hex()
+                    i += 1
+                    if topic == EVENT_TRANSFER:
+                        if log['address'] == info.exchange_address:
+                            # skip liquidity token transfers
                             continue
-                        if token_balance > 0:
-                            dm_numerator *= token_balance + event['args']['value']
-                            dm_denominator *= token_balance
-                        token_balance += event['args']['value']
-                elif topic == EVENT_ADD_LIQUIDITY:
-                    event = get_event_data(web3.codec, exchange.events.AddLiquidity._get_event_abi(), log)
-                    eth_balance += event['args']['eth_amount']
-                    token_balance += event['args']['token_amount']
-                elif topic == EVENT_REMOVE_LIQUIDITY:
-                    event = get_event_data(web3.codec, exchange.events.RemoveLiquidity._get_event_abi(), log)
-                    eth_balance -= event['args']['eth_amount']
-                    token_balance -= event['args']['token_amount']
-                elif topic == EVENT_ETH_PURCHASE:
-                    event = get_event_data(web3.codec, exchange.events.EthPurchase._get_event_abi(), log)
-                    eth_new_balance = eth_balance - event['args']['eth_bought']
-                    token_new_balance = token_balance + event['args']['tokens_sold']
-                    dm_numerator *= eth_new_balance * token_new_balance
-                    dm_denominator *= eth_balance * token_balance
-                    trade_volume += event['args']['eth_bought'] / 0.997
-                    eth_balance = eth_new_balance
-                    token_balance = token_new_balance
-                else:
-                    event = get_event_data(web3.codec, exchange.events.TokenPurchase._get_event_abi(), log)
-                    eth_new_balance = eth_balance + event['args']['eth_sold']
-                    token_new_balance = token_balance - event['args']['tokens_bought']
-                    dm_numerator *= eth_new_balance * token_new_balance
-                    dm_denominator *= eth_balance * token_balance
-                    trade_volume += event['args']['eth_sold']
-                    eth_balance = eth_new_balance
-                    token_balance = token_new_balance
+                        elif skip_transfer(info, log, i):
+                            continue
+                        else:
+                            event = get_event_data(web3.codec, exchange.events.Transfer._get_event_abi(), log)
+                            if event['args']['to'] != info.exchange_address:
+                                continue
+                            if token_balance > 0:
+                                dm_numerator *= token_balance + event['args']['value']
+                                dm_denominator *= token_balance
+                            token_balance += event['args']['value']
+                    elif topic == EVENT_ADD_LIQUIDITY:
+                        event = get_event_data(web3.codec, exchange.events.AddLiquidity._get_event_abi(), log)
+                        eth_balance += event['args']['eth_amount']
+                        token_balance += event['args']['token_amount']
+                    elif topic == EVENT_REMOVE_LIQUIDITY:
+                        event = get_event_data(web3.codec, exchange.events.RemoveLiquidity._get_event_abi(), log)
+                        eth_balance -= event['args']['eth_amount']
+                        token_balance -= event['args']['token_amount']
+                    elif topic == EVENT_ETH_PURCHASE:
+                        event = get_event_data(web3.codec, exchange.events.EthPurchase._get_event_abi(), log)
+                        eth_new_balance = eth_balance - event['args']['eth_bought']
+                        token_new_balance = token_balance + event['args']['tokens_sold']
+                        dm_numerator *= eth_new_balance * token_new_balance
+                        dm_denominator *= eth_balance * token_balance
+                        trade_volume += event['args']['eth_bought'] / 0.997
+                        eth_balance = eth_new_balance
+                        token_balance = token_new_balance
+                    else:
+                        event = get_event_data(web3.codec, exchange.events.TokenPurchase._get_event_abi(), log)
+                        eth_new_balance = eth_balance + event['args']['eth_sold']
+                        token_new_balance = token_balance - event['args']['tokens_bought']
+                        dm_numerator *= eth_new_balance * token_new_balance
+                        dm_denominator *= eth_balance * token_balance
+                        trade_volume += event['args']['eth_sold']
+                        eth_balance = eth_new_balance
+                        token_balance = token_new_balance
 
-            info.roi.append(RoiInfo(sqrt(dm_numerator / dm_denominator), eth_balance, token_balance, trade_volume))
+                info.roi.append(RoiInfo(sqrt(dm_numerator / dm_denominator), eth_balance, token_balance, trade_volume))
+        except:
+            logging.warning('FUCKED UP {} {}'.format(info.token_symbol, info.token_address))
 
     logging.info('Loaded info about roi of {} exchanges'.format(len(infos)))
     return infos
