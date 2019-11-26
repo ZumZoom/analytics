@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 
 def get_base_token(info: RelayInfo) -> str:
-    return 'usdb' if re.sub(r'\d|\)|\(', '', info.token_symbol).endswith('USDB') else 'bnt'
+    return 'usdb' if re.sub(r'\W|\d|_', '', info.token_symbol).endswith('USDB') else 'bnt'
 
 
 def get_chart_range(start: int) -> Iterable[int]:
