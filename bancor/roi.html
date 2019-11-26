@@ -82,14 +82,13 @@
         var csv_url = undefined;
         var in_redraw = false;
         var cur_price, initial_price, dm_roi, cur_loss, performance;
-        var selected_currency = 'BNT';
+        var selected_currency = undefined;
 
         $('#baselineSelector').select2({
           minimumResultsForSearch: -1
         });
 
         function selectBNT() {
-          selected_currency = 'BNT';
           document.getElementById("bnt-selector").disabled = true;
           document.getElementById("bnt-selector-mobile").disabled = true;
           document.getElementById("usdb-selector").disabled = false;
@@ -97,7 +96,6 @@
         }
 
         function selectUSDB() {
-          selected_currency = 'USDB';
           document.getElementById("bnt-selector").disabled = false;
           document.getElementById("bnt-selector-mobile").disabled = false;
           document.getElementById("usdb-selector").disabled = true;
@@ -302,6 +300,7 @@
           csv_url = window.location.href;
           csv_url = csv_url.substring(0, csv_url.lastIndexOf('/'));
           csv_url = csv_url + '/data/roi/' + e.params.data.id + '.csv';
+          selected_currency = e.params.data.text != 'BNTUSDB' && e.params.data.text.includes('USDB') ? 'USDB' : 'BNT';
           createChart();
         });
 
