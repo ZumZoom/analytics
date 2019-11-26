@@ -90,18 +90,28 @@
           minimumResultsForSearch: -1
         });
 
-        function updateTokenSelector(destroy) {
-          if (destroy) token_selector.select2('destroy');
+        function updateBaseSelectors() {
+          var new_text = switcher[base_selector.text()];
+          base_selector_mobile.html(new_text);
+          base_selector.html(new_text);
+          base_currency = new_text.toLowerCase();
+          $("#bnt-option").html('Hodl ' + new_text);
+        }
+
+        document.getElementById("baseSelector").addEventListener('click', updateBaseSelectors);
+        document.getElementById("baseSelectorMobile").addEventListener('click', updateBaseSelectors);
+
+        $(document).ready(function() {
           token_selector.select2({
             ajax: {
-              url: './data/' + base_currency + '/tokens.json',
+              url: './data/tokens.json',
               dataType: 'json',
               cache: true
             }
           });
           $.ajax({
             type: 'GET',
-            url: './data/' + base_currency + '/tokens.json'
+            url: './data/tokens.json'
           }).then(function (data) {
             // create the option and append to Select2
             var option = new Option(data.results[0].text, data.results[0].id, true, true);
@@ -115,22 +125,6 @@
               }
             });
           });
-        }
-
-        function updateBaseSelectors() {
-          var new_text = switcher[base_selector.text()];
-          base_selector_mobile.html(new_text);
-          base_selector.html(new_text);
-          base_currency = new_text.toLowerCase();
-          $("#bnt-option").html('Hodl ' + new_text);
-          updateTokenSelector(true);
-        }
-
-        document.getElementById("baseSelector").addEventListener('click', updateBaseSelectors);
-        document.getElementById("baseSelectorMobile").addEventListener('click', updateBaseSelectors);
-
-        $(document).ready(function() {
-          updateTokenSelector(false);
         });
 
         function createChart() {
@@ -299,7 +293,7 @@
         $('#tokenSelector').on('select2:select', function (e) {
           csv_url = window.location.href;
           csv_url = csv_url.substring(0, csv_url.lastIndexOf('/'));
-          csv_url = csv_url + '/data/' + base_currency + '/roi/' + e.params.data.id + '.csv';
+          csv_url = csv_url + '/data/roi/' + e.params.data.id + '.csv';
           createChart();
         });
 
