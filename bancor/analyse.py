@@ -18,7 +18,7 @@ from web3.exceptions import BadFunctionCallOutput
 from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
     EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
     TOTAL_VOLUME_DATA, TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
-    LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE, PROVIDERS_TOKEN_DATA
+    LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE, PROVIDERS_TOKEN_DATA, ALL_TOKENS_DATA
 from contracts import BancorConverter, SmartToken, BancorConverterRegistry, ERC20
 from history import History
 from relay_info import RelayInfo
@@ -272,19 +272,19 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
 
 
 @timeit
-def save_tokens(infos: List[RelayInfo], base_token: str):
-    with open(TOKENS_DATA.format(base_token), 'w') as out_f:
+def save_tokens(infos: List[RelayInfo], path: str):
+    with open(path, 'w') as out_f:
         json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos
                                if info.history]},
                   out_f, indent=1)
 
 
 @timeit
-def save_roi_data(infos: List[RelayInfo], timestamps: Dict[int, int], base_token: str):
+def save_roi_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
     for info in infos:
         if not info.history:
             continue
-        with open(ROI_DATA.format(base_token, info.token_symbol.lower()), 'w') as out_f:
+        with open(ROI_DATA.format(info.token_symbol.lower()), 'w') as out_f:
             out_f.write('timestamp,ROI,Token Price,Trade Volume\n')
             for history_point in info.history:
                 if history_point.bnt_balance == 0:
@@ -336,11 +336,11 @@ def save_total_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int], b
 
 
 @timeit
-def save_providers_data(infos: List[RelayInfo], base_token: str):
+def save_providers_data(infos: List[RelayInfo]):
     for info in infos:
         if not info.history:
             continue
-        with open(PROVIDERS_DATA.format(base_token, info.token_symbol.lower()), 'w') as out_f:
+        with open(PROVIDERS_DATA.format(info.token_symbol.lower()), 'w') as out_f:
             out_f.write('provider,bnt\n')
             total_supply = sum(info.providers.values())
             remaining_supply = total_supply
@@ -353,7 +353,7 @@ def save_providers_data(infos: List[RelayInfo], base_token: str):
                     remaining_supply -= v
             if remaining_supply > 0:
                 out_f.write('Other,{:.2f}\n'.format(info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS))
-        with open(PROVIDERS_TOKEN_DATA.format(base_token, info.token_symbol.lower()), 'w') as out_f:
+        with open(PROVIDERS_TOKEN_DATA.format(info.token_symbol.lower()), 'w') as out_f:
             data = {
                 'token_name': info.underlying_token_symbol,
                 'total_tokens': info.token_balance / 10 ** info.token_decimals
@@ -546,15 +546,19 @@ def main():
     timestamps = load_timestamps(min_block, timestamps)
     pickle_timestamps(timestamps)
 
+    all_valuable_infos = list()
     for base_token in ['bnt', 'usdb']:
         infos = list(filter(lambda info: get_base_token(info) == base_token, relay_infos))
         valuable_infos = [info for info in infos if is_valuable(info, base_token)]
+        all_valuable_infos.extend(valuable_infos)
 
-        save_tokens(valuable_infos, base_token)
-        save_roi_data(valuable_infos, timestamps, base_token)
+        save_tokens(valuable_infos, TOKENS_DATA.format(base_token))
+        save_roi_data(valuable_infos, timestamps)
         save_liquidity_data(infos, timestamps, base_token)
         save_total_volume_data(valuable_infos, timestamps, base_token)
-        save_providers_data(valuable_infos, base_token)
+        save_providers_data(valuable_infos)
+
+    save_tokens(all_valuable_infos, ALL_TOKENS_DATA)
 
     not_empty_infos = [info for info in relay_infos if not is_empty(info)]
 
