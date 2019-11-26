@@ -80,7 +80,7 @@
           cache: true,
           processResults: function (data, params) {
             params.term = params.term ? params.term.toLowerCase() : '';
-            var newData = { results: data.results.filter(function (el) { return el.id.startsWith(params.term); }) };
+            var newData = { results: data.results.filter(function (el) { return el.id.includes(params.term); }) };
             return newData;
           }
         }

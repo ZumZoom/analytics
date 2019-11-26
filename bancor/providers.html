@@ -94,7 +94,12 @@
             ajax: {
               url: './data/tokens.json',
               dataType: 'json',
-              cache: true
+              cache: true,
+              processResults: function (data, params) {
+                params.term = params.term ? params.term.toLowerCase() : '';
+                var newData = { results: data.results.filter(function (el) { return el.id.includes(params.term); }) };
+                return newData;
+              }
             }
           });
           $.ajax({
