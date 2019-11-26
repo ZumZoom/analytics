@@ -14,6 +14,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined">
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-orange.min.css" />
+  <link rel="stylesheet" href="./styles.css" />
   <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://code.highcharts.com/stock/highstock.js"></script>
@@ -30,8 +31,8 @@
         <a class="mdl-layout__tab" href="./providers.html">Liquidity Providers</a>
         <a class="mdl-layout__tab is-active" href="#">ROI</a>
         <a class="mdl-layout__tab" href="./total_volume.html">Trade Volume</a>
-        <div class="mdl-layout-spacer"></div>
-        <button class="mdl-button mdl-js-button mdl-button--accent" id="baseSelector" style="width: 100px; height: 48px">BNT</button>
+        <button class="mdl-button mdl-js-button base-selector" id="usdb-selector">USDB</button>
+        <button disabled class="mdl-button mdl-js-button base-selector" id="bnt-selector">BNT</button>
       </div>
     </header>
     <div class="mdl-layout__drawer">
@@ -40,7 +41,10 @@
         <a class="mdl-navigation__link" href="./providers.html">Liquidity Providers</a>
         <a class="mdl-navigation__link" href="#">ROI</a>
         <a class="mdl-navigation__link" href="./total_volume.html">Trade Volume</a>
-        <button class="mdl-button mdl-js-button mdl-button--accent" id="baseSelectorMobile" style="width: 100%; height: 56px; line-height: 0; text-align: left; padding: 16px">BNT</button>
+        <br>
+        <br>
+        <button class="mdl-button mdl-js-button base-selector base-selector__mobile" id="usdb-selector-mobile">USDB</button>
+        <button disabled class="mdl-button mdl-js-button base-selector base-selector__mobile" id="bnt-selector-mobile">BNT</button>
       </nav>
     </div>
     <main class="mdl-layout__content" style="height:100%">
@@ -74,32 +78,36 @@
       <div id="container" style="height:79%;"></div>
 
       <script>
-        const switcher = {
-          'BNT': 'USDB',
-          'USDB': 'BNT',
-        };
-        const base_selector = $('#baseSelector');
-        const base_selector_mobile = $('#baseSelectorMobile');
         const token_selector = $('#tokenSelector');
-        var base_currency = base_selector.text().toLowerCase();
         var csv_url = undefined;
         var in_redraw = false;
         var cur_price, initial_price, dm_roi, cur_loss, performance;
+        var selected_currency = 'BNT';
 
         $('#baselineSelector').select2({
           minimumResultsForSearch: -1
         });
 
-        function updateBaseSelectors() {
-          var new_text = switcher[base_selector.text()];
-          base_selector_mobile.html(new_text);
-          base_selector.html(new_text);
-          base_currency = new_text.toLowerCase();
-          $("#bnt-option").html('Hodl ' + new_text);
+        function selectBNT() {
+          selected_currency = 'BNT';
+          document.getElementById("bnt-selector").disabled = true;
+          document.getElementById("bnt-selector-mobile").disabled = true;
+          document.getElementById("usdb-selector").disabled = false;
+          document.getElementById("usdb-selector-mobile").disabled = false;
         }
 
-        document.getElementById("baseSelector").addEventListener('click', updateBaseSelectors);
-        document.getElementById("baseSelectorMobile").addEventListener('click', updateBaseSelectors);
+        function selectUSDB() {
+          selected_currency = 'USDB';
+          document.getElementById("bnt-selector").disabled = false;
+          document.getElementById("bnt-selector-mobile").disabled = false;
+          document.getElementById("usdb-selector").disabled = true;
+          document.getElementById("usdb-selector-mobile").disabled = true;
+        }
+
+        document.getElementById("bnt-selector").addEventListener('click', selectBNT);
+        document.getElementById("bnt-selector-mobile").addEventListener('click', selectBNT);
+        document.getElementById("usdb-selector").addEventListener('click', selectUSDB);
+        document.getElementById("usdb-selector-mobile").addEventListener('click', selectUSDB);
 
         $(document).ready(function() {
           token_selector.select2({
@@ -165,7 +173,7 @@
               opposite: true
             }, {
               labels: {
-                format: '{value} ' + base_selector.text()
+                format: '{value} ' + selected_currency
               },
               title: {
                 text: ''
@@ -195,7 +203,7 @@
               yAxis: 1,
               zIndex: 0,
               tooltip: {
-                valueSuffix: ' ' + base_selector.text()
+                valueSuffix: ' ' + selected_currency
               },
               type: 'column',
               color: '#bbb'

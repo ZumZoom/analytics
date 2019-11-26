@@ -14,6 +14,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-orange.min.css" />
+  <link rel="stylesheet" href="./styles.css" />
   <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://code.highcharts.com/stock/highstock.js"></script>
@@ -28,8 +29,8 @@
         <a class="mdl-layout__tab" href="./providers.html">Liquidity Providers</a>
         <a class="mdl-layout__tab" href="./roi.html">ROI</a>
         <a class="mdl-layout__tab is-active" href="#">Trade Volume</a>
-        <div class="mdl-layout-spacer"></div>
-        <button class="mdl-button mdl-js-button mdl-button--accent" id="baseSelector" style="width: 100px; height: 48px">BNT</button>
+        <button class="mdl-button mdl-js-button base-selector" id="usdb-selector">USDB</button>
+        <button disabled class="mdl-button mdl-js-button base-selector" id="bnt-selector">BNT</button>
       </div>
     </header>
     <div class="mdl-layout__drawer">
@@ -38,7 +39,10 @@
         <a class="mdl-navigation__link" href="./providers.html">Liquidity Providers</a>
         <a class="mdl-navigation__link" href="./roi.html">ROI</a>
         <a class="mdl-navigation__link" href="#">Trade Volume</a>
-        <button class="mdl-button mdl-js-button mdl-button--accent" id="baseSelectorMobile" style="width: 100%; height: 56px; line-height: 0; text-align: left; padding: 16px">BNT</button>
+        <br>
+        <br>
+        <button class="mdl-button mdl-js-button base-selector base-selector__mobile" id="usdb-selector-mobile">USDB</button>
+        <button disabled class="mdl-button mdl-js-button base-selector base-selector__mobile" id="bnt-selector-mobile">BNT</button>
       </nav>
     </div>
     <main class="mdl-layout__content" style="height:100%">
@@ -59,28 +63,36 @@
       <div id="container" style="height:79%;"></div>
 
       <script>
-        const switcher = {
-          'BNT': 'USDB',
-          'USDB': 'BNT',
-        };
-        const base_selector = $('#baseSelector');
-        const base_selector_mobile = $('#baseSelectorMobile');
-        var base_currency = base_selector.text().toLowerCase();
         var csv_url = window.location.href;
-        csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/' + base_currency + '/total_volume.csv';
+        csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/bnt/total_volume.csv';
+        var selected_currency = 'BNT';
 
-        function updateBaseSelectors() {
-          var new_text = switcher[base_selector.text()];
-          base_selector.html(new_text);
-          base_selector_mobile.html(new_text);
-          base_currency = new_text.toLowerCase();
+        function selectBNT() {
+          selected_currency = 'BNT';
+          document.getElementById("bnt-selector").disabled = true;
+          document.getElementById("bnt-selector-mobile").disabled = true;
+          document.getElementById("usdb-selector").disabled = false;
+          document.getElementById("usdb-selector-mobile").disabled = false;
           csv_url = window.location.href;
-          csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/' + base_currency + '/total_volume.csv';
+          csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/bnt/total_volume.csv';
           createChart();
         }
 
-        document.getElementById("baseSelector").addEventListener('click', updateBaseSelectors);
-        document.getElementById("baseSelectorMobile").addEventListener('click', updateBaseSelectors);
+        function selectUSDB() {
+          selected_currency = 'USDB';
+          document.getElementById("bnt-selector").disabled = false;
+          document.getElementById("bnt-selector-mobile").disabled = false;
+          document.getElementById("usdb-selector").disabled = true;
+          document.getElementById("usdb-selector-mobile").disabled = true;
+          csv_url = window.location.href;
+          csv_url = csv_url.substring(0, csv_url.lastIndexOf('/')) + '/data/usdb/total_volume.csv';
+          createChart();
+        }
+
+        document.getElementById("bnt-selector").addEventListener('click', selectBNT);
+        document.getElementById("bnt-selector-mobile").addEventListener('click', selectBNT);
+        document.getElementById("usdb-selector").addEventListener('click', selectUSDB);
+        document.getElementById("usdb-selector-mobile").addEventListener('click', selectUSDB);
 
         function createChart() {
           Highcharts.stockChart('container', {
@@ -144,7 +156,7 @@
               opposite: false,
               reversedStacks: false,
               labels: {
-                format: '{value} ' + base_selector.text()
+                format: '{value} ' + selected_currency
               }
             },
             tooltip: {
@@ -176,7 +188,7 @@
                         return a + (b.x >= chartOb.min && b.x <= chartOb.max ? b.y : 0);
                       }, 0);
                     }, 0).toFixed(0) +
-                    ' ' + base_selector.text() + '</b>'
+                    ' ' + selected_currency + '</b>'
                   );
                 }
               }
