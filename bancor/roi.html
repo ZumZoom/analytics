@@ -31,7 +31,7 @@
         <a class="mdl-layout__tab" href="./providers.html">Liquidity Providers</a>
         <a class="mdl-layout__tab is-active" href="#">ROI</a>
         <a class="mdl-layout__tab" href="./total_volume.html">Trade Volume</a>
-        <button class="mdl-button mdl-js-button base-selector" id="usdb-selector">USDB</button>
+        <button disabled class="mdl-button mdl-js-button base-selector" id="usdb-selector">USDB</button>
         <button disabled class="mdl-button mdl-js-button base-selector" id="bnt-selector">BNT</button>
       </div>
     </header>
@@ -43,7 +43,7 @@
         <a class="mdl-navigation__link" href="./total_volume.html">Trade Volume</a>
         <br>
         <br>
-        <button class="mdl-button mdl-js-button base-selector base-selector__mobile" id="usdb-selector-mobile">USDB</button>
+        <button disabled class="mdl-button mdl-js-button base-selector base-selector__mobile" id="usdb-selector-mobile">USDB</button>
         <button disabled class="mdl-button mdl-js-button base-selector base-selector__mobile" id="bnt-selector-mobile">BNT</button>
       </nav>
     </div>
@@ -87,25 +87,6 @@
         $('#baselineSelector').select2({
           minimumResultsForSearch: -1
         });
-
-        function selectBNT() {
-          document.getElementById("bnt-selector").disabled = true;
-          document.getElementById("bnt-selector-mobile").disabled = true;
-          document.getElementById("usdb-selector").disabled = false;
-          document.getElementById("usdb-selector-mobile").disabled = false;
-        }
-
-        function selectUSDB() {
-          document.getElementById("bnt-selector").disabled = false;
-          document.getElementById("bnt-selector-mobile").disabled = false;
-          document.getElementById("usdb-selector").disabled = true;
-          document.getElementById("usdb-selector-mobile").disabled = true;
-        }
-
-        document.getElementById("bnt-selector").addEventListener('click', selectBNT);
-        document.getElementById("bnt-selector-mobile").addEventListener('click', selectBNT);
-        document.getElementById("usdb-selector").addEventListener('click', selectUSDB);
-        document.getElementById("usdb-selector-mobile").addEventListener('click', selectUSDB);
 
         $(document).ready(function() {
           token_selector.select2({
@@ -305,7 +286,7 @@
           csv_url = window.location.href;
           csv_url = csv_url.substring(0, csv_url.lastIndexOf('/'));
           csv_url = csv_url + '/data/roi/' + e.params.data.id + '.csv';
-          selected_currency = e.params.data.text != 'BNTUSDB' && e.params.data.text.includes('USDB') ? 'USDB' : 'BNT';
+          selected_currency = e.params.data.text != 'USDBBNT' && e.params.data.text.includes('USDB') ? 'USDB' : 'BNT';
           createChart();
         });
 
