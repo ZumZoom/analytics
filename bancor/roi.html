@@ -54,7 +54,9 @@
         <div class="mdl-layout-spacer"></div>
       </div>
       <div class="mdl-layout__header-row">
-        <select id="tokenSelector" style="width: 110px"></select>
+        <select id="tokenSelector" style="width: 110px">
+          <option value="saiusdb">SAIUSDB</option>
+        </select>
         <div class="mdl-layout-spacer"></div>
         <label id="report" style="font-size: 14pt"></label>
         <div class="mdl-layout-spacer"></div>
@@ -101,21 +103,11 @@
               }
             }
           });
-          $.ajax({
-            type: 'GET',
-            url: './data/tokens.json'
-          }).then(function (data) {
-            // create the option and append to Select2
-            var option = new Option(data.results[0].text, data.results[0].id, true, true);
-            token_selector.append(option).trigger('change');
-
-            // manually trigger the `select2:select` event
-            token_selector.trigger({
-              type: 'select2:select',
-              params: {
-                data: data.results[0]
-              }
-            });
+          token_selector.trigger({
+            type: 'select2:select',
+            params: {
+              data: {text: 'SAIUSDB', id: 'saiusdb'}
+            }
           });
         });
 
