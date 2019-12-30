@@ -5,7 +5,7 @@ from pymongo import MongoClient
 from web3.auto.ipc import w3
 
 ADDRESSES = {
-    'bancor_converter_registry': '0xc1933ed6a18c175A7C2058807F25e55461Cd92F5',
+    'bancor_converter_registry': '0xf6E2D7F616B67E46D708e4410746E9AAb3a4C518',
     'bnt': '0x1F573D6Fb3F13d689FF844B4cE37794d79a7FF1C',
     'usdb': '0x309627af60F0926daa6041B8279484312f2bf060',
 }

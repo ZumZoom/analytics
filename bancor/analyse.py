@@ -73,10 +73,8 @@ def get_official_tokens() -> List[RelayInfo]:
 def get_registry_tokens() -> List[RelayInfo]:
     tokens_data = list()
     registry = BancorConverterRegistry(ADDRESSES['bancor_converter_registry'])
-    converter_addresses = registry.latest_converter_addresses()
-    for _, converter_addr in converter_addresses.items():
-        converter = BancorConverter(converter_addr)
-        relay_token_addr = converter.contract.functions.token().call()
+    relay_token_addresses = registry.get_liquidity_pools()
+    for relay_token_addr in relay_token_addresses:
         relay_token = SmartToken(relay_token_addr)
         symbol = relay_token.contract.functions.symbol().call()
         if symbol != 'BNT':
