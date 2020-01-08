@@ -271,18 +271,32 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
 
 @timeit
 def save_tokens(infos: List[RelayInfo], path: str):
+    results = list()
+    counts = defaultdict(int)
+    for info in infos:
+        if info.history:
+            ticker_name = re.sub('[\s/]', '', info.token_symbol.lower())
+            count = counts[ticker_name]
+            counts[ticker_name] += 1
+            if count > 0:
+                ticker_name = ticker_name + '_' + str(count)
+            results.append({'id': ticker_name, 'text': info.token_symbol})
     with open(path, 'w') as out_f:
-        json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos
-                               if info.history]},
-                  out_f, indent=1)
+        json.dump({'results': results}, out_f, indent=1)
 
 
 @timeit
 def save_roi_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
+    counts = defaultdict(int)
     for info in infos:
         if not info.history:
             continue
-        with open(ROI_DATA.format(info.token_symbol.lower()), 'w') as out_f:
+        ticker_name = re.sub('[\s/]', '', info.token_symbol.lower())
+        count = counts[ticker_name]
+        counts[ticker_name] += 1
+        if count > 0:
+            ticker_name = ticker_name + '_' + str(count)
+        with open(ROI_DATA.format(ticker_name), 'w') as out_f:
             out_f.write('timestamp,ROI,Token Price,Trade Volume\n')
             for history_point in info.history:
                 if history_point.bnt_balance == 0:
@@ -335,10 +349,16 @@ def save_total_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int], b
 
 @timeit
 def save_providers_data(infos: List[RelayInfo]):
+    counts = defaultdict(int)
     for info in infos:
         if not info.history:
             continue
-        with open(PROVIDERS_DATA.format(info.token_symbol.lower()), 'w') as out_f:
+        ticker_name = re.sub('[\s/]', '', info.token_symbol.lower())
+        count = counts[ticker_name]
+        counts[ticker_name] += 1
+        if count > 0:
+            ticker_name = ticker_name + '_' + str(count)
+        with open(PROVIDERS_DATA.format(ticker_name), 'w') as out_f:
             out_f.write('provider,bnt\n')
             total_supply = sum(info.providers.values())
             remaining_supply = total_supply
@@ -351,7 +371,7 @@ def save_providers_data(infos: List[RelayInfo]):
                     remaining_supply -= v
             if remaining_supply > 0:
                 out_f.write('Other,{:.2f}\n'.format(info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS))
-        with open(PROVIDERS_TOKEN_DATA.format(info.token_symbol.lower()), 'w') as out_f:
+        with open(PROVIDERS_TOKEN_DATA.format(ticker_name), 'w') as out_f:
             data = {
                 'token_name': info.underlying_token_symbol,
                 'total_tokens': info.token_balance / 10 ** info.token_decimals
@@ -405,7 +425,7 @@ def update_required(last_processed_block: int) -> bool:
 def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
     info_by_token = {info.token_address: info for info in known_infos}
     new_infos = []
-    data = get_official_tokens() + get_registry_tokens() + get_cotrader_tokens(True) + get_cotrader_tokens(False)
+    data = get_registry_tokens()  # + get_official_tokens() + get_cotrader_tokens(True) + get_cotrader_tokens(False)
     for info in data:
         known_info = info_by_token.get(info.token_address)
         if info.token_symbol in DEPRECATED_TOKENS:
