@@ -56,7 +56,7 @@ HARDCODED_INFO = {
     '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359': ('Sai Stablecoin v1.0', 'SAI', 18),
 }
 
-DIST_DIR = '../dist/uniswap/'
+DIST_DIR = '../hugo/static/uniswap/'
 
 LIQUIDITY_DATA = os.path.join(DIST_DIR, 'data/liquidity.csv')
 

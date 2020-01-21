@@ -22,7 +22,7 @@ LOGS_BLOCKS_CHUNK = 500
 
 HISTORY_CHUNK_SIZE = 5000
 
-DIST_DIR = '../dist/bancor/'
+DIST_DIR = '../hugo/static/bancor/'
 
 LIQUIDITY_DATA = os.path.join(DIST_DIR, 'data/{}/liquidity.csv')
 
