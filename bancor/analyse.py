@@ -282,7 +282,7 @@ def save_tokens(infos: List[RelayInfo], path: str):
                 ticker_name = ticker_name + '_' + str(count)
             results.append({'id': ticker_name, 'text': info.token_symbol})
     with open(path, 'w') as out_f:
-        json.dump({'results': results}, out_f, indent=1)
+        json.dump({'results': results}, out_f)
 
 
 @timeit

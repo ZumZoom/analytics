@@ -361,9 +361,7 @@ def populate_liquidity_history(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
 
 def save_tokens(infos: List[ExchangeInfo]):
     with open(TOKENS_DATA, 'w') as out_f:
-        json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos]},
-                  out_f,
-                  indent=1)
+        json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos]}, out_f)
 
 
 def save_liquidity_data(infos: List[ExchangeInfo], timestamps: List[int]):
