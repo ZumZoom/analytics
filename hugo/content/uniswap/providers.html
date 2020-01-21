@@ -1,0 +1,87 @@
+---
+title: "Uniswap Liquidity Providers By Token"
+disable_bnt: true
+disable_usdb: true
+---
+
+<div class="mdl-layout__header-row">
+    <select id="tokenSelector" class="js-example-basic-single" style="width: 300px; display: inline-block">
+        <option value="dai">DAI</option>
+    </select>
+</div>
+
+<div id="container" style="height:79%;"></div>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/js/select2.min.js"></script>
+
+<script>
+    const token_selector = $('#tokenSelector');
+    var csv_url = undefined;
+
+    $(document).ready(function() {
+        $('#tokenSelector').select2({
+            ajax: {
+                url: '/uniswap/data/tokens.json',
+                dataType: 'json',
+                cache: true,
+                processResults: function (data, params) {
+                    params.term = params.term ? params.term.toLowerCase() : '';
+                    var newData = { results: data.results.filter(function (el) { return el.id.includes(params.term); }) };
+                    return newData;
+                }
+            }
+        });
+        token_selector.trigger({
+            type: 'select2:select',
+            params: {
+                data: {text: 'DAI', id: 'dai'}
+            }
+        });
+    });
+
+    function createChart() {
+        Highcharts.chart('container', {
+            chart: {
+                type: 'pie',
+                events: {
+                    redraw: function(event) {
+                        this.renderer.text('<b>Total:</b> ' + this.series[0].total.toFixed(2) + ' ETH', 0, 40).css({ fontSize: '16px' }).add()
+                    }
+                }
+            },
+            title: {
+                text: '',
+                useHTML: true
+            },
+            credits: {
+                enabled: false
+            },
+            tooltip: {
+                pointFormat: '<b>{point.y} ETH ({point.percentage:.0f}%)</b>',
+            },
+            plotOptions: {
+                pie: {
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '<b>{point.name}</b>: {point.y} ETH ({point.percentage:.0f}%)',
+                        style: {
+                            color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
+                        },
+                    }
+                }
+            },
+            data: {
+                csvURL: csv_url
+            }
+        });
+    }
+
+    $('#tokenSelector').on('select2:select', function (e) {
+        csv_url = '{{< baseurl >}}/uniswap/data/providers/' + e.params.data.id + '.csv';
+        createChart()
+    });
+</script>

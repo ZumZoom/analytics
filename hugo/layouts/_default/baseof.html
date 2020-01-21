@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {{ partial "head" . }}
+</head>
+<body style="height:100%">
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs mdl-layout--no-desktop-drawer-button">
+        {{ block "header" . }}{{ end }}
+        {{ block "drawer" . }}{{ end }}
+        <main class="mdl-layout__content" style="height:100%">
+            {{ partial "title" . }}
+            {{ partial "noscript" . }}
+            {{ block "main" . }}{{ end }}
+            {{ partial "footer" . }}
+        </main>
+    </div>
+</body>
+</html>

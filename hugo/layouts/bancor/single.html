@@ -1,0 +1,37 @@
+{{ define "main" }}
+
+{{ .Content }}
+
+{{ end }}
+
+{{ define "header" }}
+
+<header class="mdl-layout__header">
+	<div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+		{{ $currentPage := . }}
+		{{ range .Site.Menus.bancor }}
+		<a class="mdl-layout__tab{{ if eq $currentPage.RelPermalink .URL }} is-active{{ end }}" href="{{if eq $currentPage.RelPermalink .URL }}#{{ else }}{{ .URL }}{{ end }}">{{ .Name }}</a>
+		{{ end }}
+		<button {{ if isset .Params "disable_usdb" }}disabled{{ end }} class="mdl-button mdl-js-button base-selector" id="usdb-selector">USDB</button>
+		<button {{ if isset .Params "disable_bnt" }}disabled{{ end }} class="mdl-button mdl-js-button base-selector" id="bnt-selector">BNT</button>
+	</div>
+</header>
+
+{{ end }}
+
+{{ define "drawer" }}
+
+<div class="mdl-layout__drawer">
+	<nav class="mdl-navigation">
+		{{ $currentPage := . }}
+		{{ range .Site.Menus.bancor }}
+		<a class="mdl-navigation__link" href="{{if eq $currentPage.RelPermalink .URL }}#{{ else }}{{ .URL }}{{ end }}">{{ .Name }}</a>
+		{{ end }}
+		<br>
+		<br>
+		<button {{ if isset .Params "disable_usdb" }}disabled{{ end }} class="mdl-button mdl-js-button base-selector base-selector__mobile" id="usdb-selector-mobile">USDB</button>
+		<button {{ if isset .Params "disable_bnt" }}disabled{{ end }} class="mdl-button mdl-js-button base-selector base-selector__mobile" id="bnt-selector-mobile">BNT</button>
+	</nav>
+</div>
+
+{{ end }}

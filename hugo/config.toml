@@ -1,0 +1,54 @@
+baseURL = "https://zumzoom.github.io/analytics/"
+languageCode = "en-us"
+title = "ZumZoom Analytics"
+
+disableKinds = ["RSS", "taxonomyTerm", "section", "home"]
+publishDir = "../dist"
+
+[menu]
+
+  [[menu.bancor]]
+    name = "Liquidity"
+    url = "/bancor/liquidity/"
+    weight = 1
+
+  [[menu.bancor]]
+    name = "Liquidity Providers"
+    url = "/bancor/providers/"
+    weight = 2
+
+  [[menu.bancor]]
+    name = "ROI"
+    url = "/bancor/roi/"
+    weight = 3
+
+  [[menu.bancor]]
+    name = "Trade Volume"
+    url = "/bancor/total_volume/"
+    weight = 4
+
+  [[menu.uniswap]]
+    name = "Liquidity"
+    url = "/uniswap/liquidity/"
+    weight = 1
+
+  [[menu.uniswap]]
+    name = "Liquidity Providers"
+    url = "/uniswap/providers/"
+    weight = 2
+
+  [[menu.uniswap]]
+    name = "ROI"
+    url = "/uniswap/roi/"
+    weight = 3
+
+  [[menu.uniswap]]
+    name = "Traders"
+    url = "/uniswap/traders/"
+    weight = 4
+
+  [[menu.uniswap]]
+    name = "Trade Volume"
+    url = "/uniswap/total_volume/"
+    weight = 5
+

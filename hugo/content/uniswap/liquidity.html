@@ -1,0 +1,88 @@
+---
+title: "Uniswap Liquidity"
+---
+
+<div id="container" style="height:86%;"></div>
+
+<script>
+    Highcharts.stockChart('container', {
+        chart: {
+            type: 'area',
+            backgroundColor: null,
+            events: {
+                load: function(e) {
+                    var chart = this;
+                    var button = this.renderer.button('Hide all', 300, 5, function() {
+                        var visible = this.text.textStr != 'Hide all';
+                        for(var i = 0; i < chart.series.length; i++) {
+                            var series = chart.series[i];
+                            series.setVisible(visible, false);
+                        }
+                        this.attr({ text: visible ? 'Hide all' : 'Show all' });
+                        chart.redraw();
+                    }).add();
+                }
+            }
+        },
+        rangeSelector: {
+            selected: 2,
+            buttons: [{
+                type: 'week',
+                count: 1,
+                text: '1w'
+            }, {
+                type: 'month',
+                count: 1,
+                text: '1m'
+            }, {
+                type: 'month',
+                count: 3,
+                text: '3m'
+            }, {
+                type: 'all',
+                text: 'All'
+            }],
+            inputEnabled: false
+        },
+        title: {
+            text: ''
+        },
+        plotOptions: {
+            area: {
+                stacking: 'normal'
+            }
+        },
+        legend: {
+            enabled: true,
+            align: 'center'
+        },
+        credits: {
+            enabled: false
+        },
+        yAxis: {
+            opposite: false,
+            reversedStacks: false,
+            labels: {
+                format: '{value} ETH'
+            }
+        },
+        tooltip: {
+         shared: true,
+         split: false,
+         pointFormat: '<b>{series.name}:</b> {point.y} ({point.percentage:.0f}%)<br>',
+         footerFormat: '<b>Total: {point.total:,.0f} </b>'
+        },
+        scrollbar: {
+            barBackgroundColor: '#dee3eb',
+            trackBackgroundColor: '#f2f4f7',
+            buttonBackgroundColor: '#ffffff',
+            buttonArrowColor: '#dee3eb',
+            barBorderColor: '#dee3eb',
+            buttonBorderColor: '#dee3eb',
+            rifleColor: '#ffffff'
+        },
+        data: {
+            csvURL: '{{< baseurl >}}/uniswap/data/liquidity.csv'
+        }
+    });
+</script>

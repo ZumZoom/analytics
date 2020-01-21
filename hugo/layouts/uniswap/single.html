@@ -1,0 +1,31 @@
+{{ define "main" }}
+
+{{ .Content }}
+
+{{ end }}
+
+{{ define "header" }}
+
+<header class="mdl-layout__header">
+	<div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+		{{ $currentPage := . }}
+		{{ range .Site.Menus.uniswap }}
+		<a class="mdl-layout__tab{{ if eq $currentPage.RelPermalink .URL }} is-active{{ end }}" href="{{if eq $currentPage.RelPermalink .URL }}#{{ else }}{{ .URL }}{{ end }}">{{ .Name }}</a>
+		{{ end }}
+	</div>
+</header>
+
+{{ end }}
+
+{{ define "drawer" }}
+
+<div class="mdl-layout__drawer">
+	<nav class="mdl-navigation">
+		{{ $currentPage := . }}
+		{{ range .Site.Menus.uniswap }}
+		<a class="mdl-navigation__link" href="{{if eq $currentPage.RelPermalink .URL }}#{{ else }}{{ .URL }}{{ end }}">{{ .Name }}</a>
+		{{ end }}
+	</nav>
+</div>
+
+{{ end }}
