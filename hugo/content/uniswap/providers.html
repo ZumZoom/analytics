@@ -47,7 +47,10 @@ aliases:
                 type: 'pie',
                 events: {
                     redraw: function(event) {
-                        this.renderer.text('<b>Total:</b> ' + this.series[0].total.toFixed(2) + ' ETH', 0, 40).css({ fontSize: '16px' }).add()
+                        this.renderer.text('<b>Total:</b> ' + this.series[0].total.toFixed(2) + ' ETH', 40, 200)
+                        .css({ fontSize: '16px' })
+                        .add()
+                        .toFront();
                     }
                 }
             },
