@@ -6,6 +6,16 @@ disableKinds = ["RSS", "taxonomyTerm", "section", "home"]
 publishDir = "../dist"
 
 [menu]
+  
+  [[menu.main]]
+    name = "Uniswap"
+    url = "/uniswap/"
+    weight = 1
+
+  [[menu.main]]
+    name = "Bancor"
+    url = "/bancor/"
+    weight = 2
 
   [[menu.bancor]]
     name = "Liquidity"

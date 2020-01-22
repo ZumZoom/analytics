@@ -7,12 +7,12 @@ aliases:
 ---
 
 <div class="mdl-layout__header-row">
-    <select id="tokenSelector" style="width: 110px;">
+    <select id="tokenSelector">
         <option value="daibnt">DAIBNT</option>
     </select>
 </div>
 
-<div id="container" style="height:79%;"></div>
+<div id="container" style="height:77vh;"></div>
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet" />
 
@@ -54,8 +54,8 @@ aliases:
                     redraw: function(event) {
                         this.renderer.text(
                             '<b>Total:</b><br/><b>' + this.series[0].total.toFixed(0) + ' ' + selected_currency + '</b><br/><b>' +
-                            total_tokens.toFixed(0) + ' ' + token_name.toUpperCase() + '</b>', 40, 200)
-                        .css({ fontSize: '16px' })
+                            total_tokens.toFixed(0) + ' ' + token_name.toUpperCase() + '</b>', 40, 100)
+                        .css({ fontSize: '14px' })
                         .add()
                         .toFront();
                     }

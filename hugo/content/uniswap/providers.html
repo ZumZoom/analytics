@@ -5,12 +5,12 @@ aliases:
 ---
 
 <div class="mdl-layout__header-row">
-    <select id="tokenSelector" class="js-example-basic-single" style="width: 110px; display: inline-block">
+    <select id="tokenSelector">
         <option value="dai">DAI</option>
     </select>
 </div>
 
-<div id="container" style="height:79%;"></div>
+<div id="container" style="height:77vh;"></div>
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.10/css/select2.min.css" rel="stylesheet" />
 
@@ -47,8 +47,8 @@ aliases:
                 type: 'pie',
                 events: {
                     redraw: function(event) {
-                        this.renderer.text('<b>Total:</b> ' + this.series[0].total.toFixed(2) + ' ETH', 40, 200)
-                        .css({ fontSize: '16px' })
+                        this.renderer.text('<b>Total:</b> ' + this.series[0].total.toFixed(2) + ' ETH', 40, 100)
+                        .css({ fontSize: '14px' })
                         .add()
                         .toFront();
                     }

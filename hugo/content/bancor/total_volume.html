@@ -7,40 +7,36 @@ aliases:
 
 <div class="mdl-layout__header-row">
     <div class="mdl-layout-spacer"></div>
-    <label id="report" style="font-size: 14pt"></label>
+    <label id="report"></label>
     <div class="mdl-layout-spacer"></div>
 </div>
 
-<div id="container" style="height:79%;"></div>
+<div id="container" style="height:77vh;"></div>
 
 <script>
     var csv_url = '{{< baseurl >}}/bancor/data/bnt/total_volume.csv';
     var selected_currency = 'BNT';
 
     function selectBNT() {
+        if (selected_currency == 'BNT') return;
         selected_currency = 'BNT';
-        document.getElementById("bnt-selector").disabled = true;
-        document.getElementById("bnt-selector-mobile").disabled = true;
-        document.getElementById("usdb-selector").disabled = false;
-        document.getElementById("usdb-selector-mobile").disabled = false;
-        csv_url = '{{< baseurl >}}/bancor/data/bnt/total_volume.csv';
+        document.getElementById("bnt-selector").removeAttribute("href");
+        document.getElementById("usdb-selector").setAttribute("href", "#");
+        csv_url = "{{< baseurl >}}/bancor/data/bnt/liquidity.csv";
         createChart();
     }
 
     function selectUSDB() {
+        if (selected_currency == 'USDB') return;
         selected_currency = 'USDB';
-        document.getElementById("bnt-selector").disabled = false;
-        document.getElementById("bnt-selector-mobile").disabled = false;
-        document.getElementById("usdb-selector").disabled = true;
-        document.getElementById("usdb-selector-mobile").disabled = true;
-        csv_url = '{{< baseurl >}}/bancor/data/usdb/total_volume.csv';
+        document.getElementById("bnt-selector").setAttribute("href", "#");
+        document.getElementById("usdb-selector").removeAttribute("href");
+        csv_url = "{{< baseurl >}}/bancor/data/usdb/liquidity.csv";
         createChart();
     }
 
     document.getElementById("bnt-selector").addEventListener('click', selectBNT);
-    document.getElementById("bnt-selector-mobile").addEventListener('click', selectBNT);
     document.getElementById("usdb-selector").addEventListener('click', selectUSDB);
-    document.getElementById("usdb-selector-mobile").addEventListener('click', selectUSDB);
 
     function createChart() {
         Highcharts.stockChart('container', {

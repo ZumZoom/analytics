@@ -3,16 +3,15 @@
 <head>
     {{ partial "head" . }}
 </head>
-<body style="height:100%">
-    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs mdl-layout--no-desktop-drawer-button">
+<body>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-tabs mdl-layout--fixed-drawer">
         {{ block "header" . }}{{ end }}
         {{ block "drawer" . }}{{ end }}
-        <main class="mdl-layout__content" style="height:100%">
-            {{ partial "title" . }}
+        <main class="mdl-layout__content">
             {{ partial "noscript" . }}
             {{ block "main" . }}{{ end }}
-            {{ partial "footer" . }}
         </main>
+        {{ partial "footer" . }}
     </div>
 </body>
 </html>

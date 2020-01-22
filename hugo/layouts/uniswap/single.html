@@ -7,12 +7,11 @@
 {{ define "header" }}
 
 <header class="mdl-layout__header">
-	<div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-		{{ $currentPage := . }}
-		{{ range .Site.Menus.uniswap }}
-		<a class="mdl-layout__tab{{ if eq $currentPage.RelPermalink .URL }} is-active{{ end }}" href="{{if eq $currentPage.RelPermalink .URL }}#{{ else }}{{ .URL }}{{ end }}">{{ .Name }}</a>
-		{{ end }}
-	</div>
+    <div class="mdl-layout__header-row">
+        <div class="mdl-layout-spacer"></div>
+        <span class="mdl-layout-title"><h3>{{ .Title }}</h3></span>
+        <div class="mdl-layout-spacer"></div>
+    </div>
 </header>
 
 {{ end }}
@@ -20,12 +19,16 @@
 {{ define "drawer" }}
 
 <div class="mdl-layout__drawer">
-	<nav class="mdl-navigation">
-		{{ $currentPage := . }}
-		{{ range .Site.Menus.uniswap }}
-		<a class="mdl-navigation__link" href="{{if eq $currentPage.RelPermalink .URL }}#{{ else }}{{ .URL }}{{ end }}">{{ .Name }}</a>
-		{{ end }}
-	</nav>
+    <nav class="mdl-navigation">
+        <span class="mdl-navigation__link mdl-layout-title" style="background-color: #fafafa;">Uniswap</span>
+        {{ $currentPage := . }}
+        {{ range .Site.Menus.uniswap }}
+        <a class="mdl-navigation__link" {{if eq $currentPage.RelPermalink .URL }}{{ else }}href="{{ .URL }}"{{ end }} style="padding-left: 60px;">{{ .Name }}</a>
+        {{ end }}
+    </nav>
+    <nav class="mdl-navigation">
+        <a class="mdl-navigation__link mdl-layout-title" href="{{ .Page.Site.BaseURL }}/bancor/">Bancor</a>
+    </nav>
 </div>
 
 {{ end }}
