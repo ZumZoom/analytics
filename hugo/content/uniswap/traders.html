@@ -27,7 +27,7 @@ aliases:
     $(document).ready(function() {
         $('#tokenSelector').select2({
             ajax: {
-                url: '/uniswap/data/tokens.json',
+                url: '{{< baseurl >}}/uniswap/data/tokens.json',
                 dataType: 'json',
                 cache: true,
                 processResults: function (data, params) {
