@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import pickle
+import re
 from collections import defaultdict
 from itertools import groupby
 from math import sqrt
@@ -77,6 +78,7 @@ def load_exchange_data_impl(token_address, exchange_address):
     except:
         logging.warning('FUCKED UP {}'.format(token_address))
         return None
+    token_symbol = token_symbol.strip('\x00')
     eth_balance = web3.eth.getBalance(exchange_address, block_identifier=CURRENT_BLOCK)
     return ExchangeInfo(token_address,
                         token_name,
@@ -363,14 +365,17 @@ def populate_liquidity_history(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
     return infos
 
 
-def save_tokens(infos: List[ExchangeInfo]):
-    with open(TOKENS_DATA, 'w') as out_f:
-        json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos]}, out_f)
-
-
-def save_all_tokens(infos: List[ExchangeInfo]):
-    with open(ALL_TOKENS_DATA, 'w') as out_f:
-        json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos]}, out_f)
+def save_tokens(infos: List[ExchangeInfo], path: str):
+    with open(path, 'w') as out_f:
+        json.dump({
+            'results': [
+                {
+                    'id': re.sub('[\s/]', '', info.token_symbol.lower()),
+                    'text': info.token_symbol
+                }
+                for info in infos
+            ]
+        }, out_f)
 
 
 def save_liquidity_data(infos: List[ExchangeInfo], timestamps: List[int]):
@@ -511,11 +516,11 @@ def main():
     not_empty_infos = [info for info in infos if not is_empty(info)]
     timestamps = load_timestamps()
 
-    save_tokens(valuable_infos)
+    save_tokens(valuable_infos, TOKENS_DATA)
     save_liquidity_data(infos, timestamps)
     save_total_volume_data(infos, timestamps)
 
-    save_all_tokens(not_empty_infos)
+    save_tokens(not_empty_infos, ALL_TOKENS_DATA)
     save_providers_data(not_empty_infos)
     save_roi_data(not_empty_infos, timestamps)
     save_volume_data(not_empty_infos, timestamps)
