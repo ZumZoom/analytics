@@ -18,7 +18,7 @@ from config import uniswap_factory, web3, web3_infura, pool, UNISWAP_EXCHANGE_AB
     STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, LIQUIDITY_DATA, \
     PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, ALL_EVENTS, EVENT_TRANSFER, EVENT_ADD_LIQUIDITY, \
     EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, EVENT_TOKEN_PURCHASE, VOLUME_DATA, TOTAL_VOLUME_DATA, \
-    GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK
+    GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK, ALL_TOKENS_DATA
 from exchange_info import ExchangeInfo
 from roi_info import RoiInfo
 from utils import timeit, bytes_to_str
@@ -346,6 +346,10 @@ def is_valuable(info: ExchangeInfo) -> bool:
     return info.eth_balance >= 200 * ETH
 
 
+def is_empty(info: ExchangeInfo) -> bool:
+    return info.eth_balance == 0
+
+
 @timeit
 def populate_liquidity_history(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
     for info in infos:
@@ -361,6 +365,11 @@ def populate_liquidity_history(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
 
 def save_tokens(infos: List[ExchangeInfo]):
     with open(TOKENS_DATA, 'w') as out_f:
+        json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos]}, out_f)
+
+
+def save_all_tokens(infos: List[ExchangeInfo]):
+    with open(ALL_TOKENS_DATA, 'w') as out_f:
         json.dump({'results': [{'id': info.token_symbol.lower(), 'text': info.token_symbol} for info in infos]}, out_f)
 
 
@@ -499,14 +508,17 @@ def main():
         save_raw_data(infos)
 
     valuable_infos = [info for info in infos if is_valuable(info)]
+    not_empty_infos = [info for info in infos if not is_empty(info)]
     timestamps = load_timestamps()
 
     save_tokens(valuable_infos)
     save_liquidity_data(infos, timestamps)
-    save_providers_data(valuable_infos)
-    save_roi_data(valuable_infos, timestamps)
-    save_volume_data(valuable_infos, timestamps)
     save_total_volume_data(infos, timestamps)
+
+    save_all_tokens(not_empty_infos)
+    save_providers_data(not_empty_infos)
+    save_roi_data(not_empty_infos, timestamps)
+    save_volume_data(not_empty_infos, timestamps)
 
 
 if __name__ == '__main__':
