@@ -316,14 +316,14 @@ def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int], base
 
     for info in infos:
         for history_point in info.history:
-            data[history_point.block_number][info.token_symbol] = history_point.bnt_balance / 10 ** BNT_DECIMALS
+            data[history_point.block_number][info.converter_address] = history_point.bnt_balance / 10 ** BNT_DECIMALS
 
     with open(LIQUIDITY_DATA.format(base_token, base_token), 'w') as out_f:
         out_f.write(','.join(['timestamp'] + [i.token_symbol for i in valuable_infos] + ['Other\n']))
         for b, ts in sorted(timestamps.items()):
             out_f.write(','.join([str(ts * 1000)] +
-                                 ['{:.2f}'.format(data[b].get(i.token_symbol) or 0) for i in valuable_infos] +
-                                 ['{:.2f}'.format(sum(data[b].get(i.token_symbol) or 0 for i in other_infos))]
+                                 ['{:.2f}'.format(data[b].get(i.converter_address) or 0) for i in valuable_infos] +
+                                 ['{:.2f}'.format(sum(data[b].get(i.converter_address) or 0 for i in other_infos))]
                                  ) + '\n')
 
 
