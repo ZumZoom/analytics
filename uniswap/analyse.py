@@ -437,7 +437,7 @@ def save_volume_data(infos: List[ExchangeInfo], timestamps: List[int]):
             out_f.write(','.join(['timestamp'] + ['\u200b{}'.format(t) for t in info.valuable_traders] +
                                  ['Other']) + '\n')
             for j in range(len(timestamps)):
-                if sum(info.volume[j]) == 0:
+                if sum(info.volume[j].values()) == 0:
                     continue
                 out_f.write(','.join([str(timestamps[j] * 1000)] +
                                      ['{:.2f}'.format(info.volume[j][t] / ETH) if info.volume[j][t] else ''
