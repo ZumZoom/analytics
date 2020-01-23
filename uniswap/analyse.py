@@ -349,7 +349,7 @@ def is_valuable(info: ExchangeInfo) -> bool:
 
 
 def is_empty(info: ExchangeInfo) -> bool:
-    return info.eth_balance == 0
+    return info.eth_balance <= ETH
 
 
 @timeit
