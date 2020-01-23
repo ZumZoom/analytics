@@ -452,7 +452,7 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
 
 
 def is_valuable(info: RelayInfo, base_token: str) -> bool:
-    return info.bnt_balance >= 10000 * 10 ** BNT_DECIMALS if base_token == 'bnt' else not is_empty(info)
+    return info.bnt_balance >= 20000 * 10 ** BNT_DECIMALS if base_token == 'bnt' else not is_empty(info)
 
 
 def is_empty(info: RelayInfo) -> bool:
