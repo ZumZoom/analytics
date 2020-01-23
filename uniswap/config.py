@@ -54,6 +54,10 @@ HARDCODED_INFO = {
     '0xBB9bc244D798123fDe783fCc1C72d3Bb8C189413': ('TheDAO', 'TheDAO', 16),
     '0x42456D7084eacF4083f1140d3229471bbA2949A8': ('Synth sETH', 'sETH old', 18),
     '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359': ('Sai Stablecoin v1.0', 'SAI', 18),
+    '0xF5DCe57282A584D2746FaF1593d3121Fcac444dC': ('Compound Sai', 'cSAI', 8),
+    '0x09617F6fD6cF8A71278ec86e23bBab29C04353a7': ('Unblocked Ledger Token', 'ULT (ST)', 18),
+    '0x8dd5fbCe2F6a956C3022bA3663759011Dd51e73E': ('TrueUSD', 'TUSD old', 18),
+    '0x0cBE2dF57CA9191B64a7Af3baa3F946fa7Df2F25': ('Synth sUSD', 'sUSD old', 18),
 }
 
 DIST_DIR = '../hugo/static/uniswap/'
