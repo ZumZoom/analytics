@@ -358,11 +358,19 @@ def save_providers_data(infos: List[RelayInfo]):
         counts[ticker_name] += 1
         if count > 0:
             ticker_name = ticker_name + '_' + str(count)
+        with open(PROVIDERS_TOKEN_DATA.format(ticker_name), 'w') as out_f:
+            data = {
+                'token_name': info.underlying_token_symbol,
+                'total_tokens': info.token_balance / 10 ** info.token_decimals
+            }
+            json.dump(data, out_f)
         with open(PROVIDERS_DATA.format(ticker_name), 'w') as out_f:
             out_f.write('provider,bnt\n')
             total_supply = sum(info.providers.values())
             remaining_supply = total_supply
             if total_supply == 0:
+                for p, v in sorted(info.providers.items(), key=lambda x: x[1], reverse=True):
+                    out_f.write('\u200b{},{:.2f}\n'.format(p, info.bnt_balance * s / 10 ** BNT_DECIMALS))
                 continue
             for p, v in sorted(info.providers.items(), key=lambda x: x[1], reverse=True):
                 s = v / total_supply
@@ -371,12 +379,6 @@ def save_providers_data(infos: List[RelayInfo]):
                     remaining_supply -= v
             if remaining_supply > 0:
                 out_f.write('Other,{:.2f}\n'.format(info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS))
-        with open(PROVIDERS_TOKEN_DATA.format(ticker_name), 'w') as out_f:
-            data = {
-                'token_name': info.underlying_token_symbol,
-                'total_tokens': info.token_balance / 10 ** info.token_decimals
-            }
-            json.dump(data, out_f)
 
 
 def pickle_timestamps(timestamps: Dict[int, int]):
