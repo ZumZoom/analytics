@@ -18,7 +18,7 @@ from web3.exceptions import BadFunctionCallOutput
 from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
     EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
     TOTAL_VOLUME_DATA, TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
-    LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE, PROVIDERS_TOKEN_DATA, ALL_TOKENS_DATA
+    LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE, PROVIDERS_TOKEN_DATA
 from contracts import BancorConverter, SmartToken, BancorConverterRegistry, ERC20
 from history import History
 from relay_info import RelayInfo
@@ -320,7 +320,12 @@ def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int], base
 
     with open(LIQUIDITY_DATA.format(base_token, base_token), 'w') as out_f:
         out_f.write(','.join(['timestamp'] + [i.token_symbol for i in valuable_infos] + ['Other\n']))
+        first_row = True
         for b, ts in sorted(timestamps.items()):
+            if first_row and sum(data[b].get(i.converter_address) or 0 for i in other_infos) + \
+                    sum(data[b].get(i.converter_address) or 0 for i in valuable_infos) == 0:
+                continue
+            first_row = False
             out_f.write(','.join([str(ts * 1000)] +
                                  ['{:.2f}'.format(data[b].get(i.converter_address) or 0) for i in valuable_infos] +
                                  ['{:.2f}'.format(sum(data[b].get(i.converter_address) or 0 for i in other_infos))]
@@ -329,21 +334,26 @@ def save_liquidity_data(infos: List[RelayInfo], timestamps: Dict[int, int], base
 
 @timeit
 def save_total_volume_data(infos: List[RelayInfo], timestamps: Dict[int, int], base_token: str):
-    valuable_infos = infos
-    other_infos = []
+    valuable_infos = [info for info in infos if is_valuable(info, base_token)]
+    other_infos = [info for info in infos if not is_valuable(info, base_token)]
 
     data = defaultdict(dict)
 
     for info in infos:
         for history_point in info.history:
-            data[history_point.block_number][info.token_symbol] = history_point.trade_volume / 10 ** BNT_DECIMALS
+            data[history_point.block_number][info.converter_address] = history_point.trade_volume / 10 ** BNT_DECIMALS
 
     with open(TOTAL_VOLUME_DATA.format(base_token), 'w') as out_f:
         out_f.write(','.join(['timestamp'] + [i.token_symbol for i in valuable_infos] + ['Other\n']))
+        first_row = True
         for b, ts in sorted(timestamps.items()):
+            if first_row and sum(data[b].get(i.converter_address) or 0 for i in other_infos) + \
+                    sum(data[b].get(i.converter_address) or 0 for i in valuable_infos) == 0:
+                continue
+            first_row = False
             out_f.write(','.join([str(ts * 1000)] +
-                                 ['{:.2f}'.format(data[b].get(i.token_symbol) or 0) for i in valuable_infos] +
-                                 ['{:.2f}'.format(sum(data[b].get(i.token_symbol) or 0 for i in other_infos))]
+                                 ['{:.2f}'.format(data[b].get(i.converter_address) or 0) for i in valuable_infos] +
+                                 ['{:.2f}'.format(sum(data[b].get(i.converter_address) or 0 for i in other_infos))]
                                  ) + '\n')
 
 
@@ -566,21 +576,15 @@ def main():
     timestamps = load_timestamps(min_block, timestamps)
     pickle_timestamps(timestamps)
 
-    all_valuable_infos = list()
     for base_token in ['bnt', 'usdb']:
         infos = list(filter(lambda info: get_base_token(info) == base_token, relay_infos))
-        valuable_infos = [info for info in infos if is_valuable(info, base_token)]
-        all_valuable_infos.extend(valuable_infos)
-
-        save_tokens(valuable_infos, TOKENS_DATA.format(base_token))
-        save_roi_data(valuable_infos, timestamps)
         save_liquidity_data(infos, timestamps, base_token)
-        save_total_volume_data(valuable_infos, timestamps, base_token)
-        save_providers_data(valuable_infos)
-
-    save_tokens(all_valuable_infos, ALL_TOKENS_DATA)
+        save_total_volume_data(infos, timestamps, base_token)
 
     not_empty_infos = [info for info in relay_infos if not is_empty(info)]
+    save_tokens(not_empty_infos, TOKENS_DATA)
+    save_roi_data(not_empty_infos, timestamps)
+    save_providers_data(not_empty_infos)
 
     save_tokens_to_mongo(not_empty_infos)
     save_history_to_mongo(not_empty_infos, timestamps)

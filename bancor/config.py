@@ -34,9 +34,7 @@ ROI_DATA = os.path.join(DIST_DIR, 'data/roi/{}.csv')
 
 TOTAL_VOLUME_DATA = os.path.join(DIST_DIR, 'data/{}/total_volume.csv')
 
-TOKENS_DATA = os.path.join(DIST_DIR, 'data/{}/tokens.json')
-
-ALL_TOKENS_DATA = os.path.join(DIST_DIR, 'data/tokens.json')
+TOKENS_DATA = os.path.join(DIST_DIR, 'data/tokens.json')
 
 THREADS = 2
 

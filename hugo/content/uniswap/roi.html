@@ -49,7 +49,7 @@ aliases:
     $(document).ready(function() {
         $('#tokenSelector').select2({
             ajax: {
-                url: '{{< baseurl >}}/uniswap/data/all_tokens.json',
+                url: '{{< baseurl >}}/uniswap/data/tokens.json',
                 dataType: 'json',
                 cache: true,
                 processResults: function (data, params) {

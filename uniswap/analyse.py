@@ -19,7 +19,7 @@ from config import uniswap_factory, web3, web3_infura, pool, UNISWAP_EXCHANGE_AB
     STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, LIQUIDITY_DATA, \
     PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, ALL_EVENTS, EVENT_TRANSFER, EVENT_ADD_LIQUIDITY, \
     EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, EVENT_TOKEN_PURCHASE, VOLUME_DATA, TOTAL_VOLUME_DATA, \
-    GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK, ALL_TOKENS_DATA
+    GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK
 from exchange_info import ExchangeInfo
 from roi_info import RoiInfo
 from utils import timeit, bytes_to_str
@@ -515,15 +515,13 @@ def main():
         save_last_block(CURRENT_BLOCK)
         save_raw_data(infos)
 
-    valuable_infos = [info for info in infos if is_valuable(info)]
     not_empty_infos = [info for info in infos if not is_empty(info)]
     timestamps = load_timestamps()
 
-    save_tokens(valuable_infos, TOKENS_DATA)
     save_liquidity_data(infos, timestamps)
     save_total_volume_data(infos, timestamps)
 
-    save_tokens(not_empty_infos, ALL_TOKENS_DATA)
+    save_tokens(not_empty_infos, TOKENS_DATA)
     save_providers_data(not_empty_infos)
     save_roi_data(not_empty_infos, timestamps)
     save_volume_data(not_empty_infos, timestamps)
