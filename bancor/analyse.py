@@ -192,7 +192,12 @@ def invariant(bnt_balance, token_balance, token_supply):
 
 @timeit
 def fix_vb_issues(infos: List[RelayInfo]) -> List[RelayInfo]:
-    vb_logs = get_logs([info.converter_address for info in infos], [EVENT_VIRTUAL_BALANCE_ENABLED], 0)
+    vb_logs = w3.eth.getLogs({
+        'fromBlock': 0,
+        'toBlock': 'latest',
+        'topics': [EVENT_VIRTUAL_BALANCE_ENABLED]
+    })
+    vb_logs = dict((k, list(g)) for k, g in groupby(vb_logs, itemgetter('address')))
     for info in infos:
         vb_logs_i = vb_logs.get(info.converter_address)
         if vb_logs_i:
@@ -205,7 +210,7 @@ def fix_vb_issues(infos: List[RelayInfo]) -> List[RelayInfo]:
                     pos = bisect(all_blocks, event['blockNumber'])
                     info.converter_logs = info.converter_logs[pos:]
                     logging.info('Removed {} logs before {} for {} {}'.format(
-                        len(info.converter_logs) - len(all_blocks),
+                        len(all_blocks) - len(info.converter_logs),
                         event['blockNumber'],
                         info.token_symbol,
                         info.converter_address
@@ -587,7 +592,7 @@ def main():
         if relay_infos:
             load_logs(saved_block + 1, relay_infos)
         relay_infos += new_infos
-        fix_vb_issues(relay_infos)
+        # fix_vb_issues(relay_infos)
         populate_token_info(relay_infos)
         populate_history(relay_infos)
         populate_providers(relay_infos)
