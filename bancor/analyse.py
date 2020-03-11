@@ -3,6 +3,7 @@ import logging
 import os
 import pickle
 import re
+from bisect import bisect
 from collections import defaultdict
 from itertools import groupby
 from math import sqrt
@@ -18,7 +19,7 @@ from web3.exceptions import BadFunctionCallOutput
 from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
     EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
     TOTAL_VOLUME_DATA, TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
-    LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE, PROVIDERS_TOKEN_DATA
+    LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE, PROVIDERS_TOKEN_DATA, EVENT_VIRTUAL_BALANCE_ENABLED
 from contracts import BancorConverter, SmartToken, BancorConverterRegistry, ERC20
 from history import History
 from relay_info import RelayInfo
@@ -187,6 +188,30 @@ def load_logs(start_block: int, infos: List[RelayInfo]) -> List[RelayInfo]:
 
 def invariant(bnt_balance, token_balance, token_supply):
     return sqrt(bnt_balance * token_balance) / token_supply if token_supply else 1
+
+
+@timeit
+def fix_vb_issues(infos: List[RelayInfo]) -> List[RelayInfo]:
+    vb_logs = get_logs([info.converter_address for info in infos], [EVENT_VIRTUAL_BALANCE_ENABLED], 0)
+    for info in infos:
+        vb_logs_i = vb_logs.get(info.converter_address)
+        if vb_logs_i:
+            converter = BancorConverter(info.converter_address)
+            for log in vb_logs_i[::-1]:
+                event = converter.parse_event('VirtualBalancesEnable', log)
+                if not event['args']['_enabled']:
+                    # Remove all logs before this one
+                    all_blocks = [log['blockNumber'] for log in info.converter_logs]
+                    pos = bisect(all_blocks, event['blockNumber'])
+                    info.converter_logs = info.converter_logs[pos:]
+                    logging.info('Removed {} logs before {} for {} {}'.format(
+                        len(info.converter_logs) - len(all_blocks),
+                        event['blockNumber'],
+                        info.token_symbol,
+                        info.converter_address
+                    ))
+                    break
+    return infos
 
 
 @timeit
@@ -562,6 +587,7 @@ def main():
         if relay_infos:
             load_logs(saved_block + 1, relay_infos)
         relay_infos += new_infos
+        fix_vb_issues(relay_infos)
         populate_token_info(relay_infos)
         populate_history(relay_infos)
         populate_providers(relay_infos)

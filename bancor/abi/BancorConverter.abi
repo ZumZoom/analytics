@@ -1122,5 +1122,17 @@
     "payable": false,
     "stateMutability": "view",
     "type": "function"
-  }
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "name": "_enabled",
+        "type": "bool"
+      }
+    ],
+    "name": "VirtualBalancesEnable",
+    "type": "event"
+  },
 ]
