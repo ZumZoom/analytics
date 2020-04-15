@@ -667,7 +667,7 @@ def main():
 
     not_empty_infos = [info for info in relay_infos if not is_empty(info)]
     usdary_info = [info for info in relay_infos if info.token_symbol == 'USDARY']
-    save_tokens(not_empty_infos, TOKENS_DATA)
+    save_tokens(not_empty_infos + usdary_info, TOKENS_DATA)
     save_roi_data(not_empty_infos + usdary_info, timestamps)
     save_providers_data(not_empty_infos)
 
