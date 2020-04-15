@@ -35,6 +35,9 @@ class BancorConverter(Contract):
     def connector_tokens(self, index: int) -> str:
         return self.contract.functions.connectorTokens(index).call()
 
+    def connector_token_count(self) -> int:
+        return self.contract.functions.connectorTokenCount().call()
+
     def reserve_tokens(self, index: int) -> str:
         return self.contract.functions.reserveTokens(index).call()
 

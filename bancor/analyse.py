@@ -239,6 +239,8 @@ def populate_providers(infos: List[RelayInfo]) -> List[RelayInfo]:
 
 def multireserve_populate_history(info: RelayInfo):
     converter = BancorConverter(info.converter_address)
+    token_count = converter.connector_token_count()
+    init_block = None
     info.history = list()
     i = 0
 
@@ -254,23 +256,26 @@ def multireserve_populate_history(info: RelayInfo):
             i += 1
             if topic == EVENT_CONVERSION:
                 event = converter.parse_event('Conversion', log)
-                volume += event['args']['_amount']
+                if event['args']['_fromToken'] in {'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+                                                   '0xdAC17F958D2ee523a2206206994597C13D831ec7'}:
+                    volume += event['args']['_amount'] * 1000000000000
             elif topic == EVENT_PRICE_DATA_UPDATE:
                 event = converter.parse_event('PriceDataUpdate', log)
                 connector_token = event['args']['_connectorToken']
                 connector_balance = event['args']['_connectorBalance']
                 balances[connector_token] = connector_balance
-                if connector_token not in prev_balances:
-                    prev_balances[connector_token] = connector_balance
                 token_supply = event['args']['_tokenSupply']
-                if prev_token_supply is None:
+                if not init_block or init_block == info.converter_logs[i-1]['blockNumber']:
+                    prev_balances[connector_token] = connector_balance
+                    if not init_block and len(prev_balances) == token_count:
+                        init_block = info.converter_logs[i-1]['blockNumber']
                     prev_token_supply = token_supply
 
-        if prev_token_supply is not None:
+        if len(prev_balances) == token_count:
             info.history.append(History(
                 block_number,
-                invariant(list(balances.values()), token_supply) /
-                invariant(list(prev_balances.values()), prev_token_supply),
+                invariant(balances.values(), token_supply) /
+                invariant(prev_balances.values(), prev_token_supply),
                 1,
                 1,
                 volume
