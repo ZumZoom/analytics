@@ -242,7 +242,7 @@ aliases:
 
     $('#tokenSelector').on('select2:select', function (e) {
         csv_url = '{{< baseurl >}}/bancor/data/roi/' + e.params.data.id + '.csv';
-        selected_currency = e.params.data.text != 'USDBBNT' && (e.params.data.text.includes('USDB') || e.params.data.text.equals('USDARY')) ? 'USDB' : 'BNT';
+        selected_currency = e.params.data.text != 'USDBBNT' && (e.params.data.text.includes('USDB') || e.params.data.text == 'USDARY') ? 'USDB' : 'BNT';
         createChart();
     });
 
