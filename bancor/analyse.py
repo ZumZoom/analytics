@@ -6,7 +6,7 @@ import re
 from bisect import bisect
 from collections import defaultdict
 from itertools import groupby
-from math import sqrt
+from functools import reduce
 from operator import itemgetter
 from typing import List, Dict, Iterable
 
@@ -186,8 +186,8 @@ def load_logs(start_block: int, infos: List[RelayInfo]) -> List[RelayInfo]:
     return infos
 
 
-def invariant(bnt_balance, token_balance, token_supply):
-    return sqrt(bnt_balance * token_balance) / token_supply if token_supply else 1
+def invariant(balances, token_supply):
+    return pow(reduce(lambda x, y: x * y, balances), 1 / len(balances)) / token_supply if token_supply else 1
 
 
 @timeit
@@ -237,9 +237,60 @@ def populate_providers(infos: List[RelayInfo]) -> List[RelayInfo]:
     return infos
 
 
+def multireserve_populate_history(info: RelayInfo):
+    converter = BancorConverter(info.converter_address)
+    info.history = list()
+    i = 0
+
+    prev_balances, prev_token_supply = dict(), None
+    balances, token_supply = dict(), None
+
+    for block_number in get_chart_range(
+            info.converter_logs[0]['blockNumber'] // HISTORY_CHUNK_SIZE * HISTORY_CHUNK_SIZE):
+        volume = 0
+        while i < len(info.converter_logs) and info.converter_logs[i]['blockNumber'] <= block_number:
+            log = info.converter_logs[i]
+            topic = log['topics'][0].hex()
+            i += 1
+            if topic == EVENT_CONVERSION:
+                event = converter.parse_event('Conversion', log)
+                volume += event['args']['_amount']
+            elif topic == EVENT_PRICE_DATA_UPDATE:
+                event = converter.parse_event('PriceDataUpdate', log)
+                connector_token = event['args']['_connectorToken']
+                connector_balance = event['args']['_connectorBalance']
+                balances[connector_token] = connector_balance
+                if connector_token not in prev_balances:
+                    prev_balances[connector_token] = connector_balance
+                token_supply = event['args']['_tokenSupply']
+                if prev_token_supply is None:
+                    prev_token_supply = token_supply
+
+        if prev_token_supply is not None:
+            info.history.append(History(
+                block_number,
+                invariant(list(balances.values()), token_supply) /
+                invariant(list(prev_balances.values()), prev_token_supply),
+                1,
+                1,
+                volume
+            ))
+        else:
+            info.history.append(History(block_number, 1, 0, 0, 0))
+        prev_balances = balances.copy()
+        prev_token_supply = token_supply
+
+    info.bnt_balance = 0
+    info.token_balance = 0
+
+
 @timeit
 def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
     for info in infos:
+        if info.token_symbol == 'USDARY':
+            multireserve_populate_history(info)
+            continue
+
         if len(info.converter_logs) == 0:
             logging.warning('No logs for converter {}. Skipping...'.format(info.token_symbol))
             continue
@@ -251,7 +302,8 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
         prev_bnt_balance, prev_token_balance, prev_token_supply = None, None, None
         bnt_balance, token_balance, token_supply = None, None, None
 
-        for block_number in get_chart_range(info.converter_logs[0]['blockNumber'] // HISTORY_CHUNK_SIZE * HISTORY_CHUNK_SIZE):
+        for block_number in get_chart_range(
+                info.converter_logs[0]['blockNumber'] // HISTORY_CHUNK_SIZE * HISTORY_CHUNK_SIZE):
             volume = 0
             while i < len(info.converter_logs) and info.converter_logs[i]['blockNumber'] <= block_number:
                 log = info.converter_logs[i]
@@ -280,8 +332,8 @@ def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
             if prev_bnt_balance is not None and prev_token_balance is not None:
                 info.history.append(History(
                     block_number,
-                    invariant(bnt_balance, token_balance, token_supply) /
-                    invariant(prev_bnt_balance, prev_token_balance, prev_token_supply),
+                    invariant([bnt_balance, token_balance], token_supply) /
+                    invariant([prev_bnt_balance, prev_token_balance], prev_token_supply),
                     bnt_balance,
                     token_balance,
                     volume
@@ -418,7 +470,8 @@ def save_providers_data(infos: List[RelayInfo]):
                     out_f.write('\u200b{},{:.2f}\n'.format(p, info.bnt_balance * s / 10 ** BNT_DECIMALS))
                     remaining_supply -= v
             if remaining_supply > 0:
-                out_f.write('Other,{:.2f}\n'.format(info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS))
+                out_f.write(
+                    'Other,{:.2f}\n'.format(info.bnt_balance * remaining_supply / total_supply / 10 ** BNT_DECIMALS))
 
 
 def pickle_timestamps(timestamps: Dict[int, int]):
@@ -613,8 +666,9 @@ def main():
         save_total_volume_data(infos, timestamps, base_token)
 
     not_empty_infos = [info for info in relay_infos if not is_empty(info)]
+    usdary_info = [info for info in relay_infos if info.token_symbol == 'USDARY']
     save_tokens(not_empty_infos, TOKENS_DATA)
-    save_roi_data(not_empty_infos, timestamps)
+    save_roi_data(not_empty_infos + usdary_info, timestamps)
     save_providers_data(not_empty_infos)
 
     save_tokens_to_mongo(not_empty_infos)
