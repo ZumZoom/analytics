@@ -548,6 +548,12 @@ def load_new_infos(known_infos: List[RelayInfo]) -> List[RelayInfo]:
                     # info's converter address was already updated
                     pass
 
+    # delete deprecated data
+    info_by_token = {info.token_address: info for info in data}
+    for info in known_infos.copy():
+        if info_by_token.get(info.token_address) is None:
+            known_infos.remove(info)
+
     return new_infos
 
 
