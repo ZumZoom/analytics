@@ -292,7 +292,7 @@ def multireserve_populate_history(info: RelayInfo):
 @timeit
 def populate_history(infos: List[RelayInfo]) -> List[RelayInfo]:
     for info in infos:
-        if info.token_symbol == 'USDARY':
+        if info.token_symbol in {'USDARY', 'USDRAY1'}:
             multireserve_populate_history(info)
             continue
 
@@ -671,9 +671,9 @@ def main():
         save_total_volume_data(infos, timestamps, base_token)
 
     not_empty_infos = [info for info in relay_infos if not is_empty(info)]
-    usdary_info = [info for info in relay_infos if info.token_symbol == 'USDARY']
-    save_tokens(not_empty_infos + usdary_info, TOKENS_DATA)
-    save_roi_data(not_empty_infos + usdary_info, timestamps)
+    multireserve_infos = [info for info in relay_infos if info.token_symbol in {'USDARY', 'USDRAY1'}]
+    save_tokens(not_empty_infos + multireserve_infos, TOKENS_DATA)
+    save_roi_data(not_empty_infos + multireserve_infos, timestamps)
     save_providers_data(not_empty_infos)
 
     save_tokens_to_mongo(not_empty_infos)
