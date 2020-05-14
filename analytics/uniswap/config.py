@@ -21,19 +21,21 @@ THREADS = 2
 
 pool = ThreadPool(THREADS)
 
-with open('abi/uniswap_factory.abi') as in_f:
+UNISWAP_MODULE_DIR = 'analytics/uniswap'
+
+with open(os.path.join(UNISWAP_MODULE_DIR, 'abi/uniswap_factory.abi')) as in_f:
     UNISWAP_FACTORY_ABI = json.load(in_f)
 
-with open('abi/uniswap_exchange.abi') as in_f:
+with open(os.path.join(UNISWAP_MODULE_DIR, 'abi/uniswap_exchange.abi')) as in_f:
     UNISWAP_EXCHANGE_ABI = json.load(in_f)
 
-with open('abi/erc_20.abi') as in_f:
+with open(os.path.join(UNISWAP_MODULE_DIR, 'abi/erc_20.abi')) as in_f:
     ERC_20_ABI = json.load(in_f)
 
-with open('abi/str_erc_20.abi') as in_f:
+with open(os.path.join(UNISWAP_MODULE_DIR, 'abi/str_erc_20.abi')) as in_f:
     STR_ERC_20_ABI = json.load(in_f)
 
-with open('abi/str_caps_erc_20.abi') as in_f:
+with open(os.path.join(UNISWAP_MODULE_DIR, 'abi/str_caps_erc_20.abi')) as in_f:
     STR_CAPS_ERC_20_ABI = json.load(in_f)
 
 UNISWAP_FACTORY_ADDRESS = '0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95'
@@ -51,7 +53,7 @@ HARDCODED_INFO = {
     '0x0cBE2dF57CA9191B64a7Af3baa3F946fa7Df2F25': ('Synth sUSD', 'sUSD old', 18),
 }
 
-DIST_DIR = '../hugo/static/uniswap/'
+DIST_DIR = 'hugo/static/uniswap/'
 
 LIQUIDITY_DATA = os.path.join(DIST_DIR, 'data/liquidity.csv')
 
@@ -77,9 +79,9 @@ EVENT_REMOVE_LIQUIDITY = '0x0fbf06c058b90cb038a618f8c2acbf6145f8b3570fd1fa56abb8
 
 ALL_EVENTS = [EVENT_TRANSFER, EVENT_TOKEN_PURCHASE, EVENT_ETH_PURCHASE, EVENT_ADD_LIQUIDITY, EVENT_REMOVE_LIQUIDITY]
 
-INFOS_DUMP = 'infos.dump'
+INFOS_DUMP = os.path.join(UNISWAP_MODULE_DIR, 'infos.dump')
 
-LAST_BLOCK_DUMP = 'last_block.dump'
+LAST_BLOCK_DUMP = os.path.join(UNISWAP_MODULE_DIR, 'last_block.dump')
 
 GRAPHQL_LOGS_QUERY = '''
 {{
