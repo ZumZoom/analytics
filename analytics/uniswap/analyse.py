@@ -117,7 +117,7 @@ def load_exchange_infos(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
 
 
 def remove_bad_exchanges(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
-    selectors = (info.exchange_address in EXCLUDED_EXCHANGES for info in infos)
+    selectors = (info.exchange_address not in EXCLUDED_EXCHANGES for info in infos)
     for i, info in enumerate(compress(infos, selectors)):
         infos[i] = info
     del infos[i+1:]
