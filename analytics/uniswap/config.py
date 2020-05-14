@@ -21,6 +21,8 @@ THREADS = 2
 
 pool = ThreadPool(THREADS)
 
+EXCLUDED_EXCHANGES = ['0xFFcf45b540e6C9F094Ae656D2e34aD11cdfdb187']
+
 UNISWAP_MODULE_DIR = 'analytics/uniswap'
 
 with open(os.path.join(UNISWAP_MODULE_DIR, 'abi/uniswap_factory.abi')) as in_f:

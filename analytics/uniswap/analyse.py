@@ -4,7 +4,7 @@ import os
 import pickle
 import re
 from collections import defaultdict
-from itertools import groupby
+from itertools import compress, groupby
 from math import sqrt
 from operator import itemgetter
 from typing import List, Iterable, Dict
@@ -18,7 +18,7 @@ from analytics.uniswap.config import uniswap_factory, web3, pool, UNISWAP_EXCHAN
     HARDCODED_INFO, STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, \
     LIQUIDITY_DATA, PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, ALL_EVENTS, EVENT_TRANSFER, \
     EVENT_ADD_LIQUIDITY, EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, EVENT_TOKEN_PURCHASE, VOLUME_DATA, \
-    TOTAL_VOLUME_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK
+    TOTAL_VOLUME_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK, EXCLUDED_EXCHANGES
 from analytics.uniswap.structs import RoiInfo, ExchangeInfo
 from analytics.utils import timeit, bytes_to_str
 
@@ -47,6 +47,9 @@ def load_exchanges(tokens: List[str]) -> List[str]:
 
 
 def load_exchange_data_impl(token_address, exchange_address):
+    if exchange_address in EXCLUDED_EXCHANGES:
+        return None
+
     token = web3.eth.contract(abi=STR_ERC_20_ABI, address=token_address)
     if token_address in HARDCODED_INFO:
         token_name, token_symbol, token_decimals = HARDCODED_INFO[token_address]
@@ -110,6 +113,14 @@ def load_exchange_infos(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
         infos += new_infos
 
     logging.info('Loaded info about {} exchanges'.format(len(exchanges)))
+    return infos
+
+
+def remove_bad_exchanges(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
+    selectors = (info.exchange_address in EXCLUDED_EXCHANGES for info in infos)
+    for i, info in enumerate(compress(infos, selectors)):
+        infos[i] = info
+    del infos[i+1:]
     return infos
 
 
@@ -482,6 +493,7 @@ def main():
             logging.info('Last seen block: {}, current block: {}, loading data for {} blocks...'.format(
                 saved_block, CURRENT_BLOCK, CURRENT_BLOCK - saved_block))
             infos = sorted(load_exchange_infos(infos), key=lambda x: x.eth_balance, reverse=True)
+            remove_bad_exchanges(infos)
             load_logs(saved_block + 1, infos)
             populate_providers(infos)
             populate_roi(infos)
@@ -493,6 +505,7 @@ def main():
     else:
         logging.info('Starting from scratch...')
         infos = sorted(load_exchange_infos([]), key=lambda x: x.eth_balance, reverse=True)
+        remove_bad_exchanges(infos)
         load_logs(HISTORY_BEGIN_BLOCK, infos)
         populate_providers(infos)
         populate_roi(infos)
