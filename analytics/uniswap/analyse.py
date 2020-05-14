@@ -387,8 +387,8 @@ def save_liquidity_data(infos: List[ExchangeInfo], timestamps: List[int]):
         out_f.write(','.join(['timestamp'] + [i.token_symbol for i in valuable_infos] + ['Other\n']))
         for j in range(len(timestamps)):
             out_f.write(','.join([str(timestamps[j] * 1000)] +
-                                 ['{:.2f}'.format(i.history[j]) for i in valuable_infos] +
-                                 ['{:.2f}'.format(sum(i.history[j] for i in other_infos))]
+                                 ['{:.2f}'.format(i.history[j] / ETH) for i in valuable_infos] +
+                                 ['{:.2f}'.format(sum(i.history[j] for i in other_infos) / ETH)]
                                  ) + '\n')
 
 
