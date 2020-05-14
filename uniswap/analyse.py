@@ -358,7 +358,7 @@ def save_tokens(infos: List[ExchangeInfo], path: str):
         json.dump({
             'results': [
                 {
-                    'id': re.sub('[\s/]', '', info.token_symbol.lower()),
+                    'id': re.sub('[\\s/]', '', info.token_symbol.lower()),
                     'text': info.token_symbol
                 }
                 for info in infos
@@ -384,7 +384,7 @@ def save_liquidity_data(infos: List[ExchangeInfo], timestamps: List[int]):
 
 def save_providers_data(infos: List[ExchangeInfo]):
     for info in infos:
-        ticker_name = re.sub('[\s/]', '', info.token_symbol.lower())
+        ticker_name = re.sub('[\\s/]', '', info.token_symbol.lower())
         with open(PROVIDERS_DATA.format(ticker_name), 'w') as out_f:
             out_f.write('provider,eth\n')
             total_supply = sum(info.providers.values())
@@ -403,7 +403,7 @@ def save_roi_data(infos: List[ExchangeInfo], timestamps: List[int]):
         timestamps = load_timestamps()
 
     for info in infos:
-        ticker_name = re.sub('[\s/]', '', info.token_symbol.lower())
+        ticker_name = re.sub('[\\s/]', '', info.token_symbol.lower())
         with open(ROI_DATA.format(ticker_name), 'w') as out_f:
             out_f.write('timestamp,ROI,Token Price,Trade Volume\n')
             for j in range(len(timestamps)):
@@ -420,7 +420,7 @@ def save_volume_data(infos: List[ExchangeInfo], timestamps: List[int]):
         timestamps = load_timestamps()
 
     for info in infos:
-        ticker_name = re.sub('[\s/]', '', info.token_symbol.lower())
+        ticker_name = re.sub('[\\s/]', '', info.token_symbol.lower())
         with open(VOLUME_DATA.format(ticker_name), 'w') as out_f:
             out_f.write(','.join(['timestamp'] + ['\u200b{}'.format(t) for t in info.valuable_traders] +
                                  ['Other']) + '\n')
