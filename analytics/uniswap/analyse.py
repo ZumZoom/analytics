@@ -68,13 +68,13 @@ def load_exchange_data_impl(token_address, exchange_address):
                     token_symbol = bytes_to_str(token.functions.symbol().call())
                     token_decimals = token.functions.decimals().call()
                 except Exception:
-                    logging.warning('FUCKED UP {}'.format(token_address))
+                    logging.exception('FUCKED UP {}'.format(token_address))
                     return None
 
     try:
         token_balance = token.functions.balanceOf(exchange_address).call(block_identifier=CURRENT_BLOCK)
     except Exception:
-        logging.warning('FUCKED UP {}'.format(token_address))
+        logging.exception('FUCKED UP {}'.format(token_address))
         return None
     token_symbol = token_symbol.strip('\x00')
     eth_balance = web3.eth.getBalance(exchange_address, block_identifier=CURRENT_BLOCK)
@@ -297,7 +297,7 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
                 info.roi.append(RoiInfo(sqrt(dm_numerator / dm_denominator), eth_balance, token_balance, trade_volume))
                 info.history.append(eth_balance)
         except Exception:
-            logging.warning('FUCKED UP {} {}'.format(info.token_symbol, info.token_address))
+            logging.exception('FUCKED UP {} {}'.format(info.token_symbol, info.token_address))
 
     logging.info('Loaded info about roi of {} exchanges'.format(len(infos)))
     return infos
