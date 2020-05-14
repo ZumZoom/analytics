@@ -22,7 +22,7 @@ LOGS_BLOCKS_CHUNK = 500
 
 HISTORY_CHUNK_SIZE = 5000
 
-DIST_DIR = '../hugo/static/bancor/'
+DIST_DIR = 'hugo/static/bancor/'
 
 LIQUIDITY_DATA = os.path.join(DIST_DIR, 'data/{}/liquidity.csv')
 
@@ -58,11 +58,13 @@ EVENT_TRANSFER = '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523
 
 RELAY_EVENTS = [EVENT_TRANSFER]
 
-INFOS_DUMP = 'infos.dump'
+MODULE_DIR = 'analytics/bancor'
 
-LAST_BLOCK_DUMP = 'last_block.dump'
+INFOS_DUMP = os.path.join(MODULE_DIR, 'infos.dump')
 
-TIMESTAMPS_DUMP = 'timestamps.dump'
+LAST_BLOCK_DUMP = os.path.join(MODULE_DIR, 'last_block.dump')
+
+TIMESTAMPS_DUMP = os.path.join(MODULE_DIR, 'timestamps.dump')
 
 GRAPHQL_LOGS_QUERY = '''
 {{

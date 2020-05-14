@@ -17,12 +17,12 @@ class Contract:
 
 class SmartToken(Contract):
     def __init__(self, address):
-        super().__init__('abi/SmartToken.abi', address)
+        super().__init__('analytics/bancor/abi/SmartToken.abi', address)
 
 
 class BancorConverterRegistry(Contract):
     def __init__(self, address):
-        super().__init__('abi/BancorConverterRegistry.abi', address)
+        super().__init__('analytics/bancor/abi/BancorConverterRegistry.abi', address)
 
     def get_liquidity_pools(self) -> List[str]:
         return self.contract.functions.getLiquidityPools().call()
@@ -30,7 +30,7 @@ class BancorConverterRegistry(Contract):
 
 class BancorConverter(Contract):
     def __init__(self, address):
-        super().__init__('abi/BancorConverter.abi', address)
+        super().__init__('analytics/bancor/abi/BancorConverter.abi', address)
 
     def connector_tokens(self, index: int) -> str:
         return self.contract.functions.connectorTokens(index).call()
@@ -50,7 +50,7 @@ class ERC20(Contract):
     }
 
     def __init__(self, address):
-        super().__init__('abi/ERC20.abi', address)
+        super().__init__('analytics/bancor/abi/ERC20.abi', address)
 
     def decimals(self) -> int:
         if self.contract.address in self.HARDCODED_INFO:
@@ -59,7 +59,7 @@ class ERC20(Contract):
             try:
                 return self.contract.functions.decimals().call()
             except Exception:
-                with open('abi/ERC20_CAPS.abi') as fh:
+                with open('analytics/bancor/abi/ERC20_CAPS.abi') as fh:
                     token = w3.eth.contract(abi=json.load(fh), address=self.contract.address)
                 return token.functions.DECIMALS().call()
 
@@ -71,12 +71,12 @@ class ERC20(Contract):
                 return self.contract.functions.symbol().call()
             except Exception:
                 try:
-                    with open('abi/ERC20_CAPS.abi') as fh:
+                    with open('analytics/bancor/abi/ERC20_CAPS.abi') as fh:
                         token = w3.eth.contract(abi=json.load(fh), address=self.contract.address)
                     return token.functions.SYMBOL().call()
                 except Exception:
                     try:
-                        with open('abi/ERC20_bytes.abi') as fh:
+                        with open('analytics/bancor/abi/ERC20_bytes.abi') as fh:
                             token = w3.eth.contract(abi=json.load(fh), address=self.contract.address)
                         return token.functions.symbol().call().decode().strip('\x00')
                     except Exception:
