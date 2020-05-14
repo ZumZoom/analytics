@@ -46,7 +46,7 @@ aliases:
                 events: {
                     load: function(e) {
                         var chart = this;
-                        var button = this.renderer.button('Hide all', 350, 5, function() {
+                        var button = this.renderer.button('Hide all', 400, 5, function() {
                             var visible = this.text.textStr != 'Hide all';
                             for(var i = 0; i < chart.series.length; i++) {
                                 var series = chart.series[i];
