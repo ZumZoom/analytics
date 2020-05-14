@@ -462,6 +462,8 @@ def save_providers_data(infos: List[RelayInfo]):
         with open(PROVIDERS_DATA.format(ticker_name), 'w') as out_f:
             out_f.write('provider,bnt\n')
             total_supply = sum(info.providers.values())
+            if total_supply == 0:
+                continue
             remaining_supply = total_supply
             for p, v in sorted(info.providers.items(), key=lambda x: x[1], reverse=True):
                 s = v / total_supply
