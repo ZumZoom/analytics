@@ -3,7 +3,7 @@ from typing import List
 
 from web3._utils.events import get_event_data
 
-from config import w3
+from analytics.bancor.config import w3
 
 
 class Contract:

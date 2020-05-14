@@ -2,6 +2,10 @@ import logging
 import time
 
 
+def bytes_to_str(x):
+    return x.decode().strip('\x00')
+
+
 def timeit(foo):
     def wrapper_foo(*args, **kwargs):
         t = time.time()

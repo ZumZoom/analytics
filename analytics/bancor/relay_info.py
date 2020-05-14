@@ -1,6 +1,6 @@
 from typing import List
 
-from history import History
+from analytics.bancor.history import History
 
 
 class RelayInfo:

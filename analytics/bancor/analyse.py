@@ -5,25 +5,24 @@ import pickle
 import re
 from bisect import bisect
 from collections import defaultdict
-from itertools import groupby
 from functools import reduce
+from itertools import groupby
 from operator import itemgetter
 from typing import List, Dict, Iterable
 
 import requests
-from eth_utils import to_checksum_address
-from hexbytes import HexBytes
 from retrying import retry
 from web3.exceptions import BadFunctionCallOutput
+from web3.main import HexBytes, to_checksum_address
 
-from config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
+from analytics.bancor.config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, CONVERTER_EVENTS, HISTORY_CHUNK_SIZE, \
     EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
     TOTAL_VOLUME_DATA, TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
     LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE, PROVIDERS_TOKEN_DATA, EVENT_VIRTUAL_BALANCE_ENABLED
-from contracts import BancorConverter, SmartToken, BancorConverterRegistry, ERC20
-from history import History
-from relay_info import RelayInfo
-from utils import timeit
+from analytics.bancor.contracts import BancorConverter, SmartToken, BancorConverterRegistry, ERC20
+from analytics.bancor.history import History
+from analytics.bancor.relay_info import RelayInfo
+from analytics.utils import timeit
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 

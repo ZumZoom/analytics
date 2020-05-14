@@ -14,14 +14,14 @@ from retrying import retry
 from web3._utils.events import get_event_data
 from web3.main import HexBytes, to_checksum_address
 
-from config import uniswap_factory, web3, pool, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, HARDCODED_INFO, \
-    STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, LIQUIDITY_DATA, \
-    PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, ALL_EVENTS, EVENT_TRANSFER, EVENT_ADD_LIQUIDITY, \
-    EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, EVENT_TOKEN_PURCHASE, VOLUME_DATA, TOTAL_VOLUME_DATA, \
-    GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK
-from exchange_info import ExchangeInfo
-from roi_info import RoiInfo
-from utils import timeit, bytes_to_str
+from analytics.uniswap.config import uniswap_factory, web3, pool, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, ETH, \
+    HARDCODED_INFO, STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, \
+    LIQUIDITY_DATA, PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, ALL_EVENTS, EVENT_TRANSFER, \
+    EVENT_ADD_LIQUIDITY, EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, EVENT_TOKEN_PURCHASE, VOLUME_DATA, \
+    TOTAL_VOLUME_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, LOGS_BLOCKS_CHUNK
+from analytics.uniswap.exchange_info import ExchangeInfo
+from analytics.uniswap.roi_info import RoiInfo
+from analytics.utils import timeit, bytes_to_str
 
 
 @timeit
