@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict
+from typing import List
 
 from web3._utils.events import get_event_data
 
@@ -58,7 +58,7 @@ class ERC20(Contract):
         else:
             try:
                 return self.contract.functions.decimals().call()
-            except:
+            except Exception:
                 with open('abi/ERC20_CAPS.abi') as fh:
                     token = w3.eth.contract(abi=json.load(fh), address=self.contract.address)
                 return token.functions.DECIMALS().call()
@@ -69,15 +69,15 @@ class ERC20(Contract):
         else:
             try:
                 return self.contract.functions.symbol().call()
-            except:
+            except Exception:
                 try:
                     with open('abi/ERC20_CAPS.abi') as fh:
                         token = w3.eth.contract(abi=json.load(fh), address=self.contract.address)
                     return token.functions.SYMBOL().call()
-                except:
+                except Exception:
                     try:
                         with open('abi/ERC20_bytes.abi') as fh:
                             token = w3.eth.contract(abi=json.load(fh), address=self.contract.address)
                         return token.functions.symbol().call().decode().strip('\x00')
-                    except:
+                    except Exception:
                         return None

@@ -120,7 +120,7 @@ def populate_token_info(infos: List[RelayInfo]) -> List[RelayInfo]:
                     token_address = BancorConverter(info.converter_address).reserve_tokens(0)
                     if token_address == base_token_address:
                         token_address = BancorConverter(info.converter_address).reserve_tokens(1)
-            except:
+            except Exception:
                 print('token: {}, converter: {}, relay: {}'.format(
                     info.token_symbol, info.converter_address, info.token_address))
                 info.token_decimals = None
@@ -362,7 +362,7 @@ def save_tokens(infos: List[RelayInfo], path: str):
     counts = defaultdict(int)
     for info in infos:
         if info.history:
-            ticker_name = re.sub('[\s/]', '', info.token_symbol.lower())
+            ticker_name = re.sub('[\\s/]', '', info.token_symbol.lower())
             count = counts[ticker_name]
             counts[ticker_name] += 1
             if count > 0:
@@ -378,7 +378,7 @@ def save_roi_data(infos: List[RelayInfo], timestamps: Dict[int, int]):
     for info in infos:
         if not info.history:
             continue
-        ticker_name = re.sub('[\s/]', '', info.token_symbol.lower())
+        ticker_name = re.sub('[\\s/]', '', info.token_symbol.lower())
         count = counts[ticker_name]
         counts[ticker_name] += 1
         if count > 0:
@@ -450,7 +450,7 @@ def save_providers_data(infos: List[RelayInfo]):
     for info in infos:
         if not info.history:
             continue
-        ticker_name = re.sub('[\s/]', '', info.token_symbol.lower())
+        ticker_name = re.sub('[\\s/]', '', info.token_symbol.lower())
         count = counts[ticker_name]
         counts[ticker_name] += 1
         if count > 0:
@@ -465,10 +465,6 @@ def save_providers_data(infos: List[RelayInfo]):
             out_f.write('provider,bnt\n')
             total_supply = sum(info.providers.values())
             remaining_supply = total_supply
-            if total_supply == 0:
-                for p, v in sorted(info.providers.items(), key=lambda x: x[1], reverse=True):
-                    out_f.write('\u200b{},{:.2f}\n'.format(p, info.bnt_balance * s / 10 ** BNT_DECIMALS))
-                continue
             for p, v in sorted(info.providers.items(), key=lambda x: x[1], reverse=True):
                 s = v / total_supply
                 if s >= 0.01:
