@@ -10,12 +10,11 @@ from operator import itemgetter
 from typing import List, Iterable, Dict
 
 import requests
-from eth_utils import to_checksum_address
-from hexbytes import HexBytes
 from retrying import retry
 from web3._utils.events import get_event_data
+from web3.main import HexBytes, to_checksum_address
 
-from config import uniswap_factory, web3, web3_infura, pool, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, HARDCODED_INFO, \
+from config import uniswap_factory, web3, pool, UNISWAP_EXCHANGE_ABI, STR_ERC_20_ABI, HARDCODED_INFO, \
     STR_CAPS_ERC_20_ABI, ERC_20_ABI, HISTORY_BEGIN_BLOCK, CURRENT_BLOCK, HISTORY_CHUNK_SIZE, ETH, LIQUIDITY_DATA, \
     PROVIDERS_DATA, TOKENS_DATA, INFOS_DUMP, LAST_BLOCK_DUMP, ALL_EVENTS, EVENT_TRANSFER, EVENT_ADD_LIQUIDITY, \
     EVENT_REMOVE_LIQUIDITY, EVENT_ETH_PURCHASE, ROI_DATA, EVENT_TOKEN_PURCHASE, VOLUME_DATA, TOTAL_VOLUME_DATA, \
@@ -57,25 +56,25 @@ def load_exchange_data_impl(token_address, exchange_address):
             token_name = token.functions.name().call()
             token_symbol = token.functions.symbol().call()
             token_decimals = token.functions.decimals().call()
-        except:
+        except Exception:
             try:
                 token = web3.eth.contract(abi=STR_CAPS_ERC_20_ABI, address=token_address)
                 token_name = token.functions.NAME().call()
                 token_symbol = token.functions.SYMBOL().call()
                 token_decimals = token.functions.DECIMALS().call()
-            except:
+            except Exception:
                 try:
                     token = web3.eth.contract(abi=ERC_20_ABI, address=token_address)
                     token_name = bytes_to_str(token.functions.name().call())
                     token_symbol = bytes_to_str(token.functions.symbol().call())
                     token_decimals = token.functions.decimals().call()
-                except:
+                except Exception:
                     logging.warning('FUCKED UP {}'.format(token_address))
                     return None
 
     try:
         token_balance = token.functions.balanceOf(exchange_address).call(block_identifier=CURRENT_BLOCK)
-    except:
+    except Exception:
         logging.warning('FUCKED UP {}'.format(token_address))
         return None
     token_symbol = token_symbol.strip('\x00')
@@ -245,6 +244,7 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
     for info in infos:
         try:
             info.roi = list()
+            info.history = list()
             exchange = web3.eth.contract(abi=UNISWAP_EXCHANGE_ABI, address=info.exchange_address)
             i = 0
             eth_balance, token_balance = 0, 0
@@ -296,7 +296,8 @@ def populate_roi(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
                         token_balance = token_new_balance
 
                 info.roi.append(RoiInfo(sqrt(dm_numerator / dm_denominator), eth_balance, token_balance, trade_volume))
-        except:
+                info.history.append(eth_balance)
+        except Exception:
             logging.warning('FUCKED UP {} {}'.format(info.token_symbol, info.token_address))
 
     logging.info('Loaded info about roi of {} exchanges'.format(len(infos)))
@@ -350,19 +351,6 @@ def is_valuable(info: ExchangeInfo) -> bool:
 
 def is_empty(info: ExchangeInfo) -> bool:
     return info.eth_balance <= ETH
-
-
-@timeit
-def populate_liquidity_history(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
-    for info in infos:
-        history_len = len(info.history)
-        new_history = pool.map(
-            lambda block_number: web3_infura.eth.getBalance(info.exchange_address, block_number) / ETH,
-            get_chart_range(HISTORY_BEGIN_BLOCK + history_len * HISTORY_CHUNK_SIZE))
-        info.history += new_history
-
-    logging.info('Loaded history of balances of {} exchanges'.format(len(infos)))
-    return infos
 
 
 def save_tokens(infos: List[ExchangeInfo], path: str):
@@ -496,7 +484,6 @@ def main():
                 saved_block, CURRENT_BLOCK, CURRENT_BLOCK - saved_block))
             infos = sorted(load_exchange_infos(infos), key=lambda x: x.eth_balance, reverse=True)
             load_logs(saved_block + 1, infos)
-            populate_liquidity_history(infos)
             populate_providers(infos)
             populate_roi(infos)
             populate_volume(infos)
@@ -508,7 +495,6 @@ def main():
         logging.info('Starting from scratch...')
         infos = sorted(load_exchange_infos([]), key=lambda x: x.eth_balance, reverse=True)
         load_logs(HISTORY_BEGIN_BLOCK, infos)
-        populate_liquidity_history(infos)
         populate_providers(infos)
         populate_roi(infos)
         populate_volume(infos)

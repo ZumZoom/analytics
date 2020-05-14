@@ -1,16 +1,7 @@
 import json
 import os
 from multiprocessing.pool import ThreadPool
-from web3 import Web3, IPCProvider
-
-from custom_http_provider import CustomHTTPProvider
-
-INFURA_ADDRESS = 'https://mainnet.infura.io/v3/4facf9a657054a2287e6a4bec21046a3'
-DEFAULT_REQUEST_TIMEOUT = 30
-
-web3_infura = Web3(CustomHTTPProvider(endpoint_uri=INFURA_ADDRESS, request_kwargs={'timeout': DEFAULT_REQUEST_TIMEOUT}))
-
-web3 = Web3(IPCProvider())
+from web3.auto.ipc import w3 as web3
 
 ETH = 10 ** 18
 
