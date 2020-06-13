@@ -356,7 +356,7 @@ def populate_volume(infos: List[ExchangeInfo]) -> List[ExchangeInfo]:
 
 
 def is_valuable(info: ExchangeInfo) -> bool:
-    return info.eth_balance >= 200 * ETH
+    return info.eth_balance >= 100 * ETH
 
 
 def is_empty(info: ExchangeInfo) -> bool:
