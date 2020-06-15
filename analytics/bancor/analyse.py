@@ -19,7 +19,8 @@ from analytics.bancor.config import w3, LOGS_BLOCKS_CHUNK, CURRENT_BLOCK, pool, 
     EVENT_PRICE_DATA_UPDATE, ADDRESSES, EVENT_CONVERSION, ROI_DATA, BNT_DECIMALS, LIQUIDITY_DATA, TIMESTAMPS_DUMP, \
     TOTAL_VOLUME_DATA, TOKENS_DATA, RELAY_EVENTS, PROVIDERS_DATA, GRAPHQL_ENDPOINT, GRAPHQL_LOGS_QUERY, INFOS_DUMP, \
     LAST_BLOCK_DUMP, DEPRECATED_TOKENS, mongo, MONGO_DATABASE, PROVIDERS_TOKEN_DATA, EVENT_VIRTUAL_BALANCE_ENABLED
-from analytics.bancor.contracts import BancorConverter, SmartToken, BancorConverterRegistry, ERC20
+from analytics.bancor.contracts import BancorConverter, SmartToken, BancorConverterRegistry, ERC20, \
+    BancorContractRegistry
 from analytics.bancor.structs import History, RelayInfo
 from analytics.utils import timeit
 
@@ -71,7 +72,9 @@ def get_official_tokens() -> List[RelayInfo]:
 @timeit
 def get_registry_tokens() -> List[RelayInfo]:
     tokens_data = list()
-    registry = BancorConverterRegistry(ADDRESSES['bancor_converter_registry'])
+    registry = BancorConverterRegistry(
+        BancorContractRegistry(ADDRESSES['bancor_contracts_registry']).bancor_converter_registy_address()
+    )
     relay_token_addresses = registry.get_liquidity_pools()
     for relay_token_addr in relay_token_addresses:
         relay_token = SmartToken(relay_token_addr)

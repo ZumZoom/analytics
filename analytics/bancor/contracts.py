@@ -3,7 +3,7 @@ from typing import List
 
 from web3._utils.events import get_event_data
 
-from analytics.bancor.config import w3
+from analytics.bancor.config import w3, ADDRESSES
 
 
 class Contract:
@@ -18,6 +18,15 @@ class Contract:
 class SmartToken(Contract):
     def __init__(self, address):
         super().__init__('analytics/bancor/abi/SmartToken.abi', address)
+
+
+class BancorContractRegistry(Contract):
+    def __init__(self):
+        super().__init__('analytics/bancor/abi/BancorContractRegistry.abi', ADDRESSES['bancor_contract_registry'])
+
+    def bancor_converter_registy_address(self) -> str:
+        return self.contract.functions.addressOf(
+            '0x42616e636f72436f6e7665727465725265676973747279000000000000000000').call()
 
 
 class BancorConverterRegistry(Contract):
