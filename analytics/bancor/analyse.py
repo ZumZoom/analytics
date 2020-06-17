@@ -119,17 +119,17 @@ def populate_token_info(infos: List[RelayInfo]) -> List[RelayInfo]:
                     token_address = BancorConverter(info.converter_address).reserve_tokens(0)
                     if token_address == base_token_address:
                         token_address = BancorConverter(info.converter_address).reserve_tokens(1)
+                erc_20 = ERC20(token_address)
+                info.token_decimals = erc_20.decimals()
+                info.underlying_token_symbol = erc_20.symbol()
+                print('Success: token: {}, underlying token: {}, address: {}, decimals: {}'.format(
+                    info.token_symbol, info.underlying_token_symbol, token_address, info.token_decimals))
             except Exception:
                 print('token: {}, converter: {}, relay: {}'.format(
                     info.token_symbol, info.converter_address, info.token_address))
                 info.token_decimals = None
                 info.underlying_token_symbol = None
                 continue
-            erc_20 = ERC20(token_address)
-            info.token_decimals = erc_20.decimals()
-            info.underlying_token_symbol = erc_20.symbol()
-            print('Success: token: {}, underlying token: {}, address: {}, decimals: {}'.format(
-                info.token_symbol, info.underlying_token_symbol, token_address, info.token_decimals))
 
     return infos
 
