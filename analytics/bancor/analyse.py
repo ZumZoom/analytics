@@ -72,9 +72,7 @@ def get_official_tokens() -> List[RelayInfo]:
 @timeit
 def get_registry_tokens() -> List[RelayInfo]:
     tokens_data = list()
-    registry = BancorConverterRegistry(
-        BancorContractRegistry(ADDRESSES['bancor_contracts_registry']).bancor_converter_registy_address()
-    )
+    registry = BancorConverterRegistry(BancorContractRegistry().bancor_converter_registy_address())
     relay_token_addresses = registry.get_liquidity_pools()
     for relay_token_addr in relay_token_addresses:
         relay_token = SmartToken(relay_token_addr)
