@@ -8,6 +8,7 @@ ADDRESSES = {
     'bancor_contract_registry': '0x52Ae12ABe5D8BD778BD5397F99cA900624CfADD4',
     'bnt': '0x1F573D6Fb3F13d689FF844B4cE37794d79a7FF1C',
     'usdb': '0x309627af60F0926daa6041B8279484312f2bf060',
+    'eth': '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 }
 
 DEPRECATED_TOKENS = {}
