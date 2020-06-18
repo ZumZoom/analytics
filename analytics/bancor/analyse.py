@@ -121,7 +121,7 @@ def populate_token_info(infos: List[RelayInfo]) -> List[RelayInfo]:
                         token_address = BancorConverter(info.converter_address).reserve_tokens(1)
                 if token_address == ADDRESSES['eth']:
                     info.underlying_token_symbol = 'ETH'
-                    info.decimals = 18
+                    info.token_decimals = 18
                 else:
                     erc_20 = ERC20(token_address)
                     info.token_decimals = erc_20.decimals()
