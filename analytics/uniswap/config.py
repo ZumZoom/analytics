@@ -92,4 +92,4 @@ GRAPHQL_LOGS_QUERY = '''
     }}
 }}'''
 
-GRAPHQL_ENDPOINT = 'http://localhost:8547/graphql'
+GRAPHQL_ENDPOINT = 'http://localhost:8545/graphql'
